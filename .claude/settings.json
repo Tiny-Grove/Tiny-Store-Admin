@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack)"
+      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack)",
+      "Bash(mkdir -p \"/Users/trevinlanders/DevStudio/tiny-store-admin/src/app/api/auth/[...nextauth]\")",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)"
+    ],
+    "additionalDirectories": [
+      "/Users/trevinlanders/DevStudio/tiny-store-admin/src/app/api/auth"
     ]
   }
 }
