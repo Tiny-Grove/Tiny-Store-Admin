@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalCustomer } from "@/lib/portal-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parsePriceToCents } from "@/lib/format";
+import { generateProductCode } from "@/lib/product-code";
 
 export async function createProduct(formData: FormData) {
   const customer = await getPortalCustomer();
@@ -24,6 +25,7 @@ export async function createProduct(formData: FormData) {
       name,
       description,
       price_cents: parsePriceToCents(price),
+      product_code: generateProductCode(),
     })
     .select("id")
     .single();
