@@ -9,6 +9,7 @@ import { priceProductName } from "@/lib/stripe-plans";
 import { generateInviteToken, sendInviteEmail } from "@/lib/customer-invite";
 import { uploadCustomerAsset } from "@/lib/customer-assets";
 import { parsePriceToCents } from "@/lib/format";
+import { generateProductCode } from "@/lib/product-code";
 import type { SubscriptionStatus } from "@/lib/supabase/types";
 
 export async function addNote(formData: FormData) {
@@ -111,6 +112,7 @@ export async function addProduct(formData: FormData) {
     description,
     price_cents: parsePriceToCents(price),
     stock_count,
+    product_code: generateProductCode(),
   });
 
   revalidatePath(`/customers/${customerId}`);

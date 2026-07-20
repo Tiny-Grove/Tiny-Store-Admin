@@ -39,8 +39,17 @@ export interface Product {
   currency: string;
   image_url: string | null;
   stock_count: number;
+  product_code: string;
+  category_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProductCategory {
+  id: string;
+  customer_id: string;
+  name: string;
+  created_at: string;
 }
 
 export interface Subscription {
