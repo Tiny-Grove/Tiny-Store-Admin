@@ -19,8 +19,15 @@ export interface Customer {
   secondary_color: string | null;
   logo_url: string | null;
   favicon_url: string | null;
+  industry_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Industry {
+  id: string;
+  name: string;
+  created_at: string;
 }
 
 export interface Product {
@@ -31,6 +38,7 @@ export interface Product {
   price_cents: number;
   currency: string;
   image_url: string | null;
+  stock_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +47,7 @@ export interface Subscription {
   id: string;
   customer_id: string;
   plan: string;
+  plan_name: string | null;
   status: SubscriptionStatus;
   amount_cents: number;
   current_period_end: string | null;

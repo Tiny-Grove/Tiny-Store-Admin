@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { priceProductName } from "@/lib/stripe-plans";
 import { generateInviteToken, sendInviteEmail } from "@/lib/customer-invite";
+import { uploadCustomerAsset } from "@/lib/customer-assets";
+import { parsePriceToCents } from "@/lib/format";
 import type { SubscriptionStatus } from "@/lib/supabase/types";
 
 export async function addNote(formData: FormData) {
@@ -30,16 +32,129 @@ export async function addNote(formData: FormData) {
   revalidatePath(`/customers/${customerId}`);
 }
 
-export async function setCountry(formData: FormData) {
+export async function updateStoreInfo(formData: FormData) {
   const customerId = formData.get("customerId") as string;
-  const country = (formData.get("country") as string) || null;
   if (!customerId) return;
 
+  const name = (formData.get("name") as string)?.trim() || null;
+  const company = (formData.get("company") as string)?.trim() || null;
+  const country = (formData.get("country") as string) || null;
+  const industry_id = (formData.get("industry_id") as string) || null;
+  const primary_color = (formData.get("primary_color") as string) || null;
+  const secondary_color = (formData.get("secondary_color") as string) || null;
+
   const admin = createAdminClient();
-  await admin.from("customers").update({ country }).eq("id", customerId);
+  await admin
+    .from("customers")
+    .update({
+      name,
+      company,
+      country,
+      industry_id,
+      primary_color,
+      secondary_color,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", customerId);
 
   revalidatePath(`/customers/${customerId}`);
   revalidatePath("/");
+}
+
+export async function uploadCustomerLogo(formData: FormData) {
+  const customerId = formData.get("customerId") as string;
+  const file = formData.get("logo") as File;
+  if (!customerId) return;
+
+  const url = await uploadCustomerAsset(customerId, file, "logo");
+  if (!url) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("customers")
+    .update({ logo_url: url, updated_at: new Date().toISOString() })
+    .eq("id", customerId);
+
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function uploadCustomerFavicon(formData: FormData) {
+  const customerId = formData.get("customerId") as string;
+  const file = formData.get("favicon") as File;
+  if (!customerId) return;
+
+  const url = await uploadCustomerAsset(customerId, file, "favicon");
+  if (!url) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("customers")
+    .update({ favicon_url: url, updated_at: new Date().toISOString() })
+    .eq("id", customerId);
+
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function addProduct(formData: FormData) {
+  const customerId = formData.get("customerId") as string;
+  const name = (formData.get("name") as string)?.trim();
+  const description = (formData.get("description") as string)?.trim() || null;
+  const price = (formData.get("price") as string) ?? "0";
+  const stock_count = Number.parseInt(formData.get("stock_count") as string, 10) || 0;
+
+  if (!customerId || !name) return;
+
+  const admin = createAdminClient();
+  await admin.from("products").insert({
+    customer_id: customerId,
+    name,
+    description,
+    price_cents: parsePriceToCents(price),
+    stock_count,
+  });
+
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function updateProduct(formData: FormData) {
+  const customerId = formData.get("customerId") as string;
+  const productId = formData.get("productId") as string;
+  const name = (formData.get("name") as string)?.trim();
+  const description = (formData.get("description") as string)?.trim() || null;
+  const price = (formData.get("price") as string) ?? "0";
+  const stock_count = Number.parseInt(formData.get("stock_count") as string, 10) || 0;
+
+  if (!customerId || !productId || !name) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("products")
+    .update({
+      name,
+      description,
+      price_cents: parsePriceToCents(price),
+      stock_count,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", productId)
+    .eq("customer_id", customerId);
+
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function deleteProduct(formData: FormData) {
+  const customerId = formData.get("customerId") as string;
+  const productId = formData.get("productId") as string;
+  if (!customerId || !productId) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("products")
+    .delete()
+    .eq("id", productId)
+    .eq("customer_id", customerId);
+
+  revalidatePath(`/customers/${customerId}`);
 }
 
 export async function resendInvite(customerId: string) {
