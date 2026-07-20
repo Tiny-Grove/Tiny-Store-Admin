@@ -48,7 +48,9 @@ export default async function CustomersPage() {
             </thead>
             <tbody>
               {customers.map((customer) => {
-                const sub = customer.subscriptions[0];
+                const sub =
+                  customer.subscriptions.find((s) => s.status === "active") ??
+                  customer.subscriptions[0];
                 return (
                   <tr
                     key={customer.id}

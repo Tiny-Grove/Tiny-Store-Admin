@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalCustomer } from "@/lib/portal-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { uploadCustomerAsset } from "@/lib/customer-assets";
 
 export async function updateColors(formData: FormData) {
   const customer = await getPortalCustomer();
@@ -20,29 +21,12 @@ export async function updateColors(formData: FormData) {
   revalidatePath("/portal/branding");
 }
 
-async function uploadAsset(customerId: string, file: File, filename: string) {
-  if (!file || file.size === 0) return null;
-
-  const admin = createAdminClient();
-  const ext = file.name.split(".").pop() || "png";
-  const path = `${customerId}/${filename}.${ext}`;
-
-  const { error } = await admin.storage
-    .from("customer-assets")
-    .upload(path, file, { contentType: file.type, upsert: true });
-
-  if (error) return null;
-
-  const { data } = admin.storage.from("customer-assets").getPublicUrl(path);
-  return data.publicUrl;
-}
-
 export async function uploadLogo(formData: FormData) {
   const customer = await getPortalCustomer();
   if (!customer) return;
 
   const file = formData.get("logo") as File;
-  const url = await uploadAsset(customer.id, file, "logo");
+  const url = await uploadCustomerAsset(customer.id, file, "logo");
   if (!url) return;
 
   const admin = createAdminClient();
@@ -59,7 +43,7 @@ export async function uploadFavicon(formData: FormData) {
   if (!customer) return;
 
   const file = formData.get("favicon") as File;
-  const url = await uploadAsset(customer.id, file, "favicon");
+  const url = await uploadCustomerAsset(customer.id, file, "favicon");
   if (!url) return;
 
   const admin = createAdminClient();

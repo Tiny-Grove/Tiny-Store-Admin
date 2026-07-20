@@ -3,12 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalCustomer } from "@/lib/portal-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-function parsePriceToCents(value: string) {
-  const amount = Number.parseFloat(value);
-  if (Number.isNaN(amount) || amount < 0) return 0;
-  return Math.round(amount * 100);
-}
+import { parsePriceToCents } from "@/lib/format";
 
 export async function updateProduct(formData: FormData) {
   const customer = await getPortalCustomer();

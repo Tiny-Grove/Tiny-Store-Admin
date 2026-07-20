@@ -14,3 +14,9 @@ export function formatMoneyCompact(cents: number) {
     maximumFractionDigits: 1,
   });
 }
+
+export function parsePriceToCents(value: string) {
+  const amount = Number.parseFloat(value);
+  if (Number.isNaN(amount) || amount < 0) return 0;
+  return Math.round(amount * 100);
+}

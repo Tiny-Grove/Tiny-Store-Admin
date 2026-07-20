@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getStripe, getStripeMode, isStripeConfigured } from "@/lib/stripe";
 import { getMailgunClient, getMailgunDomain, isMailgunConfigured } from "@/lib/mailgun";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Industry } from "@/lib/supabase/types";
+import { addIndustry } from "./actions";
 
 async function getStripeStatus() {
   if (!isStripeConfigured()) {
@@ -36,10 +39,12 @@ async function getMailgunStatus() {
 }
 
 export default async function SettingsPage() {
-  const [stripeStatus, mailgunStatus] = await Promise.all([
+  const [stripeStatus, mailgunStatus, { data: industries }] = await Promise.all([
     getStripeStatus(),
     getMailgunStatus(),
+    createAdminClient().from("industries").select("*").order("name").returns<Industry[]>(),
   ]);
+  const industryOptions = industries ?? [];
   const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN ?? "tinygrove.co.uk";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "Not configured";
   const siteUrl = process.env.PUBLIC_SITE_URL;
@@ -206,6 +211,51 @@ export default async function SettingsPage() {
         <section
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
           style={{ animationDelay: "225ms" }}
+        >
+          <h2 className="font-medium text-slate-900">Industries</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Options available on a customer&apos;s Industry field.
+          </p>
+
+          {industryOptions.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-500">No industries yet.</p>
+          ) : (
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {industryOptions.map((industry) => (
+                <li
+                  key={industry.id}
+                  className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
+                >
+                  {industry.name}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form action={addIndustry} className="mt-4 flex items-end gap-2">
+            <div className="flex-1">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Add a new industry
+              </label>
+              <input
+                name="name"
+                placeholder="e.g. Homeware"
+                required
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+            >
+              Add to list
+            </button>
+          </form>
+        </section>
+
+        <section
+          className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          style={{ animationDelay: "300ms" }}
         >
           <h2 className="font-medium text-slate-900">Database</h2>
           <p className="mt-1 text-sm text-slate-500">
