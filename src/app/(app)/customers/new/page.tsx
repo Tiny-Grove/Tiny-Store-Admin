@@ -23,8 +23,7 @@ export default function NewCustomerPage() {
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">New customer</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Creates their profile and emails an activation link so they can set
-          a password or sign in with Google.
+          Creates their profile in the CRM.
         </p>
       </div>
 

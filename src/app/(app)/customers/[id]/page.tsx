@@ -11,7 +11,6 @@ import {
   addNote,
   addProduct,
   deleteProduct,
-  resendInvite,
   syncSubscriptionsFromStripe,
   updateProduct,
   updateStoreInfo,
@@ -36,13 +35,10 @@ type CustomerDetail = Customer & {
 
 export default async function CustomerDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ invite_email_error?: string }>;
 }) {
   const { id } = await params;
-  const { invite_email_error } = await searchParams;
 
   const supabase = createAdminClient();
   const [{ data: customer }, enabledPlans, { data: products }, { data: industries }] =
@@ -74,6 +70,10 @@ export default async function CustomerDetailPage({
     customer.subscriptions.find((sub) => sub.status === "active") ??
     customer.subscriptions[0];
 
+  const siteUrl = process.env.PUBLIC_SITE_URL;
+  const storeUrl =
+    siteUrl && customer.slug ? `${siteUrl}/store/${customer.slug}` : null;
+
   return (
     <div className="space-y-8">
       <Link
@@ -91,13 +91,6 @@ export default async function CustomerDetailPage({
         </svg>
         Customers
       </Link>
-
-      {invite_email_error && (
-        <p className="animate-fade-in rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
-          Customer created, but the invite email failed to send. Use
-          &quot;Resend invite&quot; below once Mailgun is configured correctly.
-        </p>
-      )}
 
       <div className="flex items-center gap-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-lg font-semibold text-white shadow-md shadow-indigo-600/25">
@@ -126,16 +119,6 @@ export default async function CustomerDetailPage({
           <p className="text-slate-500">{customer.email}</p>
           {customer.company && (
             <p className="text-sm text-slate-400">{customer.company}</p>
-          )}
-          {customer.account_status === "invited" && (
-            <form action={resendInvite.bind(null, customer.id)} className="mt-2">
-              <button
-                type="submit"
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
-              >
-                Resend invite
-              </button>
-            </form>
           )}
         </div>
 
@@ -248,6 +231,40 @@ export default async function CustomerDetailPage({
               Save changes
             </button>
           </form>
+
+          <div className="mt-6 border-t border-slate-100 pt-4">
+            <h3 className="mb-2 text-sm font-medium text-slate-700">
+              Storefront link
+            </h3>
+            {!customer.slug ? (
+              <p className="text-sm text-slate-500">
+                Not set up yet — the merchant picks their own storefront link
+                from the mobile app.
+              </p>
+            ) : !storeUrl ? (
+              <p className="text-sm text-amber-700">
+                Slug is set to &quot;{customer.slug}&quot;, but storefront
+                links aren&apos;t active until PUBLIC_SITE_URL is set in the
+                environment.
+              </p>
+            ) : (
+              <div className="flex items-center gap-2">
+                <a
+                  href={storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="truncate text-sm font-medium text-indigo-600 hover:underline"
+                >
+                  {storeUrl}
+                </a>
+                {!customer.stripe_connect_charges_enabled && (
+                  <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-700">
+                    Payments not enabled
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="mt-6 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
             <div>

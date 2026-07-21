@@ -20,6 +20,9 @@ export interface Customer {
   logo_url: string | null;
   favicon_url: string | null;
   industry_id: string | null;
+  slug: string | null;
+  stripe_connect_account_id: string | null;
+  stripe_connect_charges_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

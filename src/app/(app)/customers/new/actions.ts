@@ -2,13 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { generateInviteToken, sendInviteEmail } from "@/lib/customer-invite";
 
 export interface CreateCustomerState {
   error?: string;
 }
 
-export async function createCustomerInvite(
+export async function createCustomer(
   _prevState: CreateCustomerState,
   formData: FormData
 ): Promise<CreateCustomerState> {
@@ -30,18 +29,9 @@ export async function createCustomerInvite(
     return { error: "A customer with this email already exists." };
   }
 
-  const { raw, hash } = generateInviteToken();
-
   const { data: customer, error } = await admin
     .from("customers")
-    .insert({
-      email,
-      name,
-      company,
-      account_status: "invited",
-      invite_token_hash: hash,
-      invited_at: new Date().toISOString(),
-    })
+    .insert({ email, name, company, account_status: "active" })
     .select("id")
     .single();
 
@@ -49,11 +39,5 @@ export async function createCustomerInvite(
     return { error: "A customer with this email already exists." };
   }
 
-  const result = await sendInviteEmail({ to: email, name, rawToken: raw });
-
-  redirect(
-    result.sent
-      ? `/customers/${customer.id}`
-      : `/customers/${customer.id}?invite_email_error=1`
-  );
+  redirect(`/customers/${customer.id}`);
 }

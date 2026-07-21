@@ -2,13 +2,18 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Paths anyone can reach with no session at all — customer-support surfaces
-// and server-to-server APIs authenticated their own way (shared API key).
-const FULLY_PUBLIC_PATHS = ["/unsubscribe", "/tickets", "/api/tickets", "/api/plans"];
-
-// Paths under /portal (the customer self-service area) reachable without a
-// customer session — sign-in and account activation.
-const PORTAL_PUBLIC_PATHS = ["/portal/login", "/portal/auth/callback", "/portal/activate"];
+// Paths anyone can reach with no session at all — customer-support surfaces,
+// server-to-server APIs authenticated their own way (shared API key /
+// webhook signature), and the public merchant storefronts + their checkout
+// webhook.
+const FULLY_PUBLIC_PATHS = [
+  "/unsubscribe",
+  "/tickets",
+  "/api/tickets",
+  "/api/plans",
+  "/store",
+  "/api/webhooks/stripe-connect",
+];
 
 // Paths in the admin area reachable without an admin session.
 const ADMIN_PUBLIC_PATHS = ["/login", "/auth/callback"];
@@ -46,23 +51,6 @@ export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   if (FULLY_PUBLIC_PATHS.some((p) => path.startsWith(p))) {
-    return response;
-  }
-
-  // --- Customer portal ---
-  if (path.startsWith("/portal")) {
-    const isPortalPublic = PORTAL_PUBLIC_PATHS.some((p) => path.startsWith(p));
-
-    if (!user && !isPortalPublic) {
-      const loginUrl = new URL("/portal/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", path);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    if (user && path === "/portal/login") {
-      return NextResponse.redirect(new URL("/portal", request.url));
-    }
-
     return response;
   }
 

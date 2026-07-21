@@ -1,13 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import { createCustomerInvite, type CreateCustomerState } from "./actions";
+import { createCustomer, type CreateCustomerState } from "./actions";
 
 const initialState: CreateCustomerState = {};
 
 export function NewCustomerForm() {
   const [state, formAction, pending] = useActionState(
-    createCustomerInvite,
+    createCustomer,
     initialState
   );
 
@@ -59,7 +59,7 @@ export function NewCustomerForm() {
         disabled={pending}
         className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0 disabled:opacity-60"
       >
-        {pending ? "Creating…" : "Create & send invite"}
+        {pending ? "Creating…" : "Create customer"}
       </button>
     </form>
   );
