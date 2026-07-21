@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { priceProductName } from "@/lib/stripe-plans";
-import { generateInviteToken, sendInviteEmail } from "@/lib/customer-invite";
 import { uploadCustomerAsset } from "@/lib/customer-assets";
 import { parsePriceToCents } from "@/lib/format";
 import { generateProductCode } from "@/lib/product-code";
@@ -155,27 +154,6 @@ export async function deleteProduct(formData: FormData) {
     .delete()
     .eq("id", productId)
     .eq("customer_id", customerId);
-
-  revalidatePath(`/customers/${customerId}`);
-}
-
-export async function resendInvite(customerId: string) {
-  const admin = createAdminClient();
-  const { data: customer } = await admin
-    .from("customers")
-    .select("email, name, account_status")
-    .eq("id", customerId)
-    .maybeSingle();
-
-  if (!customer || customer.account_status !== "invited") return;
-
-  const { raw, hash } = generateInviteToken();
-  await admin
-    .from("customers")
-    .update({ invite_token_hash: hash, invited_at: new Date().toISOString() })
-    .eq("id", customerId);
-
-  await sendInviteEmail({ to: customer.email, name: customer.name, rawToken: raw });
 
   revalidatePath(`/customers/${customerId}`);
 }

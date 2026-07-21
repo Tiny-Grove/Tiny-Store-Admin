@@ -1,8 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Shared by the admin app and the customer portal — both let a customer's
-// logo/favicon be uploaded to the same storage bucket.
+// Uploads a customer's logo/favicon to the shared storage bucket.
 export async function uploadCustomerAsset(
   customerId: string,
   file: File,
