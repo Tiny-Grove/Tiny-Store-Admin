@@ -12,7 +12,7 @@ export default async function SubscriptionsPage() {
         </h1>
         <p className="text-sm text-slate-500">
           Stripe isn&apos;t connected yet.{" "}
-          <Link href="/settings" className="text-indigo-600 hover:underline">
+          <Link href="/settings" className="text-sky-600 hover:underline">
             Set it up in Settings
           </Link>
           .
@@ -62,7 +62,7 @@ export default async function SubscriptionsPage() {
                     type="submit"
                     aria-pressed={enabled}
                     className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${
-                      enabled ? "bg-indigo-600" : "bg-slate-200"
+                      enabled ? "bg-sky-600" : "bg-slate-200"
                     }`}
                   >
                     <span

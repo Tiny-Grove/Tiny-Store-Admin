@@ -19,20 +19,27 @@ export default async function CustomersPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Customers</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Customers</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {customers.length} {customers.length === 1 ? "customer" : "customers"} total
+          </p>
+        </div>
         <Link
           href="/customers/new"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0"
+          className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-800 hover:shadow-md active:translate-y-0"
         >
           New customer
         </Link>
       </div>
 
       {customers.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          No customers yet — once connected to the Tiny Store database,
-          they&apos;ll show up here.
-        </p>
+        <div className="animate-fade-in-up rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+          <p className="text-sm text-slate-500">
+            No customers yet — once connected to the Tiny Store database,
+            they&apos;ll show up here.
+          </p>
+        </div>
       ) : (
         <div className="animate-fade-in-up overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full text-sm">
@@ -59,9 +66,14 @@ export default async function CustomersPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/customers/${customer.id}`}
-                        className="font-medium text-slate-900 hover:text-indigo-600"
+                        className="group flex items-center gap-3"
                       >
-                        {customer.name ?? "—"}
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
+                          {(customer.name ?? customer.email).slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className="font-medium text-slate-900 group-hover:text-sky-700">
+                          {customer.name ?? "—"}
+                        </span>
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-slate-500">
@@ -79,7 +91,7 @@ export default async function CustomersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-slate-700">
-                      {sub?.plan ?? "—"}
+                      {sub?.plan_name ?? sub?.plan ?? "—"}
                     </td>
                     <td className="px-4 py-3">
                       {sub ? (

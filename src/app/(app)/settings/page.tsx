@@ -53,7 +53,12 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Settings</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Integrations, access control, and platform configuration.
+        </p>
+      </div>
 
       <div className="space-y-4">
         <section className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -105,7 +110,7 @@ export default async function SettingsPage() {
               <dd className="mt-0.5">
                 <Link
                   href="/subscriptions"
-                  className="font-medium text-indigo-600 hover:underline"
+                  className="font-medium text-sky-600 hover:underline"
                 >
                   Subscriptions →
                 </Link>
@@ -175,7 +180,7 @@ export default async function SettingsPage() {
               <dd className="mt-0.5">
                 <Link
                   href="/emails"
-                  className="font-medium text-indigo-600 hover:underline"
+                  className="font-medium text-sky-600 hover:underline"
                 >
                   Emails →
                 </Link>
@@ -241,7 +246,7 @@ export default async function SettingsPage() {
                 name="name"
                 placeholder="e.g. Homeware"
                 required
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
               />
             </div>
             <button

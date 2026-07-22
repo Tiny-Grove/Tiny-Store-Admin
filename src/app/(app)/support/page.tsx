@@ -13,16 +13,24 @@ export default async function SupportPage() {
     .order("last_message_at", { ascending: false });
 
   const tickets = (data ?? []) as TicketWithCustomer[];
+  const openCount = tickets.filter((t) => t.status !== "resolved").length;
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Support</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Support</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {openCount} open of {tickets.length} total tickets
+        </p>
+      </div>
 
       {tickets.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          No support tickets yet — they&apos;ll show up here once customers
-          submit one from the app.
-        </p>
+        <div className="animate-fade-in-up rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+          <p className="text-sm text-slate-500">
+            No support tickets yet — they&apos;ll show up here once customers
+            submit one from the app.
+          </p>
+        </div>
       ) : (
         <div className="animate-fade-in-up divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm">
           {tickets.map((t) => (

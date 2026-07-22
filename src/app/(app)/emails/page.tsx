@@ -36,7 +36,7 @@ export default async function EmailsPage() {
         </div>
         <Link
           href="/emails/new"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0"
+          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0"
         >
           New template
         </Link>
@@ -68,7 +68,7 @@ export default async function EmailsPage() {
                 <div>
                   <Link
                     href={`/emails/${t.id}`}
-                    className="font-medium text-slate-900 hover:text-indigo-600"
+                    className="font-medium text-slate-900 hover:text-sky-600"
                   >
                     {t.name}
                   </Link>
@@ -100,7 +100,7 @@ export default async function EmailsPage() {
               name="header_html"
               defaultValue={layoutRow?.header_html ?? ""}
               rows={4}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
             />
             <button
               type="submit"
@@ -128,7 +128,7 @@ export default async function EmailsPage() {
               name="footer_html"
               defaultValue={layoutRow?.footer_html ?? ""}
               rows={4}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
             />
             <button
               type="submit"

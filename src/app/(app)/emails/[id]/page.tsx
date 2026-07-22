@@ -53,7 +53,7 @@ export default async function EditTemplatePage({
         <div className="flex gap-2">
           <Link
             href={`/emails/${t.id}/send`}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0"
+            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0"
           >
             Send this template →
           </Link>
@@ -72,7 +72,7 @@ export default async function EditTemplatePage({
               name="name"
               required
               defaultValue={t.name}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
             />
           </div>
 
@@ -84,7 +84,7 @@ export default async function EditTemplatePage({
               name="subject"
               required
               defaultValue={t.subject}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
             />
           </div>
 
@@ -96,7 +96,7 @@ export default async function EditTemplatePage({
               name="body_html"
               rows={16}
               defaultValue={t.body_html}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
             />
             <p className="mt-1 text-xs text-slate-400">
               Use %recipient.name% / %recipient.email% for personalization.
@@ -106,7 +106,7 @@ export default async function EditTemplatePage({
           <div className="flex items-center justify-between">
             <button
               type="submit"
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0"
+              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0"
             >
               Save changes
             </button>

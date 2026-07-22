@@ -30,7 +30,7 @@ export function Header({ user }: { user: User | null }) {
             referrerPolicy="no-referrer"
           />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-700 text-xs font-semibold text-white">
             {initials(name ?? "?")}
           </div>
         )}
