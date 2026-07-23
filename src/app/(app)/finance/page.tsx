@@ -11,7 +11,7 @@ export default async function FinancePage() {
         <h1 className="mb-2 text-2xl font-semibold text-slate-900">Finance</h1>
         <p className="text-sm text-slate-500">
           Stripe isn&apos;t connected yet.{" "}
-          <Link href="/settings" className="text-indigo-600 hover:underline">
+          <Link href="/settings" className="text-sky-600 hover:underline">
             Set it up in Settings
           </Link>
           .
@@ -33,7 +33,12 @@ export default async function FinancePage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Finance</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-900">Finance</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Revenue trends from settled Stripe invoices.
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

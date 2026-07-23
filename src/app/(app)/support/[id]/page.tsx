@@ -61,7 +61,7 @@ export default async function TicketDetailPage({
           <select
             name="status"
             defaultValue={t.status}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
           >
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
@@ -95,7 +95,7 @@ export default async function TicketDetailPage({
               key={m.id}
               className={`max-w-[85%] rounded-xl border p-4 text-sm shadow-sm ${
                 isAdmin
-                  ? "ml-auto border-indigo-100 bg-indigo-50"
+                  ? "ml-auto border-sky-100 bg-sky-50"
                   : "border-slate-200 bg-white"
               }`}
             >
@@ -116,7 +116,7 @@ export default async function TicketDetailPage({
           required
           rows={4}
           placeholder="Write a reply…"
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
         />
         <div className="flex items-center justify-between">
           <p className="text-xs text-slate-400">
@@ -125,7 +125,7 @@ export default async function TicketDetailPage({
           </p>
           <button
             type="submit"
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0"
+            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0"
           >
             Send reply
           </button>
