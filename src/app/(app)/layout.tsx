@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
+import { Logo } from "@/components/logo";
 
 export default async function AppLayout({
   children,
@@ -16,9 +17,7 @@ export default async function AppLayout({
     <div className="flex min-h-screen bg-slate-50">
       <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
         <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-700 text-sm font-semibold text-white shadow-md shadow-sky-700/25">
-            T
-          </div>
+          <Logo className="h-9 w-9 shrink-0" />
           <div className="leading-tight">
             <p className="text-base font-semibold text-slate-900">Tiny Store</p>
             <p className="text-xs font-medium text-slate-400">Admin</p>
