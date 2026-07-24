@@ -1,4 +1,5 @@
 import { signInWithGoogle } from "./actions";
+import { Logo } from "@/components/logo";
 
 const ERROR_MESSAGES: Record<string, string> = {
   access_denied:
@@ -22,9 +23,7 @@ export default async function LoginPage({
       />
 
       <div className="relative w-full max-w-sm animate-scale-in rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/50">
-        <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-sky-600 text-lg font-semibold text-white shadow-lg shadow-sky-600/30">
-          T
-        </div>
+        <Logo className="mx-auto mb-4 h-11 w-11" />
         <h1 className="text-xl font-semibold text-slate-900">Tiny Store Admin</h1>
         <p className="mb-6 mt-1 text-sm text-slate-500">
           Sign in with your tinygrove.co.uk account.
