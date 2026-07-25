@@ -5,7 +5,6 @@ import {
   getCustomerGrowth,
   getSubscriptionStatusBreakdown,
 } from "@/lib/analytics";
-import { formatMoneyCompact } from "@/lib/format";
 import { TrendBarChart } from "@/components/trend-bar-chart";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -50,7 +49,7 @@ export default async function AnalyticsPage() {
         <section className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="font-medium text-slate-900">Revenue</h2>
           <p className="mb-2 text-sm text-slate-500">Paid Stripe invoices, by month.</p>
-          <TrendBarChart data={revenueData} color="#437023" formatValue={formatMoneyCompact} />
+          <TrendBarChart data={revenueData} color="#437023" format="money" />
         </section>
       )}
 

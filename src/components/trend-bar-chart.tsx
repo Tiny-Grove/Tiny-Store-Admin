@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { formatMoneyCompact } from "@/lib/format";
 
 const HEIGHT = 220;
 const PADDING = { top: 24, right: 8, bottom: 28, left: 40 };
@@ -34,12 +35,13 @@ function topRoundedRectPath(x: number, y: number, width: number, height: number,
 export function TrendBarChart({
   data,
   color = "#437023",
-  formatValue = (v: number) => String(v),
+  format = "count",
 }: {
   data: { key: string; label: string; value: number }[];
   color?: string;
-  formatValue?: (value: number) => string;
+  format?: "count" | "money";
 }) {
+  const formatValue = format === "money" ? formatMoneyCompact : (v: number) => String(v);
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -63,6 +65,9 @@ export function TrendBarChart({
   const plotHeight = HEIGHT - PADDING.top - PADDING.bottom;
   const slotWidth = data.length > 0 ? plotWidth / data.length : 0;
   const barWidth = Math.min(MAX_BAR_WIDTH, Math.max(slotWidth - BAR_GAP, 2));
+  // Skip month labels when there isn't room for them side by side (e.g. 12
+  // months in a half-width card) — always keep the last (current) one.
+  const labelStep = slotWidth > 0 ? Math.max(1, Math.ceil(34 / slotWidth)) : 1;
 
   return (
     <div ref={containerRef} className="relative" style={{ height: HEIGHT }}>
@@ -115,15 +120,18 @@ export function TrendBarChart({
                     {formatValue(d.value)}
                   </text>
                 )}
-                <text
-                  x={slotX + slotWidth / 2}
-                  y={HEIGHT - 10}
-                  textAnchor="middle"
-                  fontSize={10}
-                  fill={AXIS_TEXT}
-                >
-                  {d.label}
-                </text>
+                {(i === currentIndex ||
+                  (i % labelStep === 0 && currentIndex - i >= labelStep)) && (
+                  <text
+                    x={slotX + slotWidth / 2}
+                    y={HEIGHT - 10}
+                    textAnchor="middle"
+                    fontSize={10}
+                    fill={AXIS_TEXT}
+                  >
+                    {d.label}
+                  </text>
+                )}
 
                 <rect
                   x={slotX}
