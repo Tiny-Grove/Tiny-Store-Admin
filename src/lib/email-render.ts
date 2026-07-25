@@ -26,7 +26,7 @@ export function renderEmail({
         <td align="center">
           <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0;">
             <tr>
-              <td style="background-color:#4f46e5; padding:20px 32px; font-family: Arial, Helvetica, sans-serif;">
+              <td style="background-color:#437023; padding:20px 32px; font-family: Arial, Helvetica, sans-serif;">
                 ${headerHtml}
               </td>
             </tr>

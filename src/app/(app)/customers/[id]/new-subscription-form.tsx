@@ -24,7 +24,7 @@ export function NewSubscriptionForm({
     return (
       <p className="text-sm text-slate-500">
         No plans are enabled yet — turn one on in{" "}
-        <Link href="/subscriptions" className="text-sky-600 hover:underline">
+        <Link href="/subscriptions" className="text-brand-600 hover:underline">
           Subscriptions
         </Link>
         .
@@ -46,7 +46,7 @@ export function NewSubscriptionForm({
         <select
           name="priceId"
           required
-          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
         >
           {plans.map((plan) => (
             <option key={plan.priceId} value={plan.priceId}>
@@ -57,7 +57,7 @@ export function NewSubscriptionForm({
         <button
           type="submit"
           disabled={pending}
-          className="whitespace-nowrap rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0 disabled:opacity-60"
+          className="whitespace-nowrap rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0 disabled:opacity-60"
         >
           {pending ? "Creating…" : "Create subscription"}
         </button>

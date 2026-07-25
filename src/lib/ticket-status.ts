@@ -3,7 +3,7 @@ export function ticketStatusBadgeClasses(status: string) {
     case "open":
       return "bg-amber-50 text-amber-700";
     case "pending":
-      return "bg-sky-50 text-sky-700";
+      return "bg-slate-100 text-slate-700";
     case "resolved":
       return "bg-green-50 text-green-700";
     default:
@@ -16,7 +16,7 @@ export function ticketStatusDotClasses(status: string) {
     case "open":
       return "bg-amber-500";
     case "pending":
-      return "bg-sky-500";
+      return "bg-slate-500";
     case "resolved":
       return "bg-green-500";
     default:

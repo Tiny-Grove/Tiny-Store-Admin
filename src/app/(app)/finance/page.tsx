@@ -11,7 +11,7 @@ export default async function FinancePage() {
         <h1 className="mb-2 text-2xl font-semibold text-slate-900">Finance</h1>
         <p className="text-sm text-slate-500">
           Stripe isn&apos;t connected yet.{" "}
-          <Link href="/settings" className="text-sky-600 hover:underline">
+          <Link href="/settings" className="text-brand-600 hover:underline">
             Set it up in Settings
           </Link>
           .

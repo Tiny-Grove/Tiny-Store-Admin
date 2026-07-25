@@ -19,7 +19,7 @@ export default async function LoginPage({
     <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-slate-50">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 h-96 w-xl -translate-x-1/2 rounded-full bg-linear-to-br from-sky-200 via-sky-100 to-transparent opacity-60 blur-3xl"
+        className="pointer-events-none absolute -top-40 left-1/2 h-96 w-xl -translate-x-1/2 rounded-full bg-linear-to-br from-brand-200 via-brand-100 to-transparent opacity-60 blur-3xl"
       />
 
       <div className="relative w-full max-w-sm animate-scale-in rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/50">

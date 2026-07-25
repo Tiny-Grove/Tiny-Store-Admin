@@ -43,7 +43,7 @@ export async function sendTicketReplyEmail({
   const bodyHtml = `
     <p>${escapeHtml(replyBody).replace(/\n/g, "<br />")}</p>
     <p style="margin-top:24px;">
-      <a href="${ticketUrl}" style="color:#4f46e5;">View and reply to this ticket →</a>
+      <a href="${ticketUrl}" style="color:#437023;">View and reply to this ticket →</a>
     </p>
   `;
 

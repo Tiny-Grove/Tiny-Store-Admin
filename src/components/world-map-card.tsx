@@ -18,11 +18,11 @@ const HEIGHT = 420;
 
 const NUMERIC_BY_CODE = new Map(COUNTRIES.map((c) => [c.code, c.numeric]));
 
-// Interpolates from a neutral "no customers" gray to solid indigo as a
+// Interpolates from a neutral "no customers" gray to solid brand green as a
 // country's share of the max count grows.
 function colorForRatio(ratio: number) {
   const from = [226, 232, 240];
-  const to = [79, 70, 229];
+  const to = [87, 142, 48];
   const [r, g, b] = from.map((f, i) => Math.round(f + (to[i] - f) * ratio));
   return `rgb(${r}, ${g}, ${b})`;
 }

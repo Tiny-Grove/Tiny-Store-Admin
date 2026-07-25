@@ -27,7 +27,7 @@ export default async function PublicTicketPage({
     <div className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto w-full max-w-xl">
         <div className="mb-6 flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-semibold text-white shadow-md shadow-indigo-600/25">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-semibold text-white shadow-md shadow-brand-600/25">
             T
           </div>
           <span className="text-base font-semibold text-slate-900">
@@ -73,7 +73,7 @@ export default async function PublicTicketPage({
                     className={`max-w-[85%] rounded-xl border p-4 text-sm shadow-sm ${
                       isAdmin
                         ? "border-slate-200 bg-white"
-                        : "ml-auto border-indigo-100 bg-indigo-50"
+                        : "ml-auto border-brand-100 bg-brand-50"
                     }`}
                   >
                     <p className="whitespace-pre-wrap text-slate-800">{m.body}</p>
@@ -96,12 +96,12 @@ export default async function PublicTicketPage({
                   required
                   rows={4}
                   placeholder="Write a reply…"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
                 />
                 <div className="mt-2 flex justify-end">
                   <button
                     type="submit"
-                    className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0"
+                    className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0"
                   >
                     Send
                   </button>

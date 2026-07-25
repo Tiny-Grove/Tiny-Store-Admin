@@ -27,7 +27,7 @@ export default async function CustomersPage() {
         </div>
         <Link
           href="/customers/new"
-          className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-800 hover:shadow-md active:translate-y-0"
+          className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-md active:translate-y-0"
         >
           New customer
         </Link>
@@ -71,7 +71,7 @@ export default async function CustomersPage() {
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
                           {(customer.name ?? customer.email).slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="font-medium text-slate-900 group-hover:text-sky-700">
+                        <span className="font-medium text-slate-900 group-hover:text-brand-700">
                           {customer.name ?? "—"}
                         </span>
                       </Link>

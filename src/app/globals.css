@@ -3,8 +3,18 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --accent: #0369a1;
+  --accent: #437023;
   --accent-foreground: #ffffff;
+
+  /* Brand green, sampled from the logo (bag #578e30 / handle #122d28). */
+  --brand-50: #f5faf2;
+  --brand-100: #e6f2de;
+  --brand-200: #c8e2b6;
+  --brand-300: #a8d08b;
+  --brand-600: #578e30;
+  --brand-700: #437023;
+  --brand-800: #315318;
+  --brand-900: #213612;
 }
 
 @theme inline {
@@ -12,6 +22,14 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
   --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }

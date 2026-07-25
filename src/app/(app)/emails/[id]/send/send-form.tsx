@@ -50,7 +50,7 @@ export function SendForm({ templateId }: { templateId: string }) {
                 name="status"
                 value={opt.value}
                 defaultChecked={checkedStatuses.includes(opt.value)}
-                className="accent-sky-600"
+                className="accent-brand-600"
               />
               {opt.label}
             </label>
@@ -68,12 +68,12 @@ export function SendForm({ templateId }: { templateId: string }) {
       )}
 
       {state.phase === "previewed" && (
-        <div className="animate-fade-in rounded-xl border border-sky-200 bg-sky-50 p-5">
-          <p className="text-sm font-medium text-sky-900">
+        <div className="animate-fade-in rounded-xl border border-brand-200 bg-brand-50 p-5">
+          <p className="text-sm font-medium text-brand-900">
             {state.matchedCount} recipient{state.matchedCount === 1 ? "" : "s"} match
           </p>
           {!!state.sampleEmails?.length && (
-            <p className="mt-1 text-xs text-sky-700">
+            <p className="mt-1 text-xs text-brand-700">
               e.g. {state.sampleEmails.join(", ")}
               {(state.matchedCount ?? 0) > state.sampleEmails.length && "…"}
             </p>
@@ -98,7 +98,7 @@ export function SendForm({ templateId }: { templateId: string }) {
             name="intent"
             value="confirm"
             disabled={pending}
-            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0 disabled:opacity-60"
+            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0 disabled:opacity-60"
           >
             {pending ? "Sending…" : `Confirm & send to ${state.matchedCount}`}
           </button>

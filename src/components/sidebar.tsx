@@ -141,7 +141,7 @@ export function Sidebar() {
                   href={item.href}
                   className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
                     active
-                      ? "bg-sky-700 text-white shadow-md shadow-sky-700/25"
+                      ? "bg-brand-700 text-white shadow-md shadow-brand-700/25"
                       : "text-slate-600 hover:translate-x-0.5 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >

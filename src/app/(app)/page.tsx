@@ -153,7 +153,7 @@ export default async function DashboardPage() {
       key: "customers",
       label: "Total customers",
       value: String(stats.totalCustomers),
-      accent: "bg-sky-50 text-sky-700",
+      accent: "bg-brand-50 text-brand-700",
     },
     {
       key: "active",
@@ -185,7 +185,7 @@ export default async function DashboardPage() {
       label: "Open support tickets",
       value: stats.openTickets,
       href: "/support",
-      accent: "bg-sky-50 text-sky-700",
+      accent: "bg-brand-50 text-brand-700",
     },
     {
       key: "stock",

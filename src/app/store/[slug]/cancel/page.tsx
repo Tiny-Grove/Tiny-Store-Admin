@@ -18,7 +18,7 @@ export default async function StorefrontCancelPage({
         </p>
         <Link
           href={`/store/${slug}`}
-          className="mt-2 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+          className="mt-2 inline-block rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700"
         >
           Back to store
         </Link>

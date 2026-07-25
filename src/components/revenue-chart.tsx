@@ -9,7 +9,7 @@ const PADDING = { top: 28, right: 12, bottom: 32, left: 46 };
 const MAX_BAR_WIDTH = 24;
 const BAR_GAP = 4;
 
-const ACCENT = "#0369a1"; // current month — sky-700, this app's brand accent
+const ACCENT = "#437023"; // current month — brand-700, this app's brand accent
 const MUTED = "#e2e8f0"; // past months — de-emphasis gray (slate-200)
 const GRID = "#e1e0d9";
 const AXIS_TEXT = "#898781";
@@ -70,7 +70,7 @@ export function RevenueChart({ data }: { data: MonthlyRevenue[] }) {
         <button
           type="button"
           onClick={() => setShowTable((v) => !v)}
-          className="text-xs font-medium text-sky-600 hover:underline"
+          className="text-xs font-medium text-brand-600 hover:underline"
         >
           {showTable ? "View as chart" : "View as table"}
         </button>
@@ -91,7 +91,7 @@ export function RevenueChart({ data }: { data: MonthlyRevenue[] }) {
                   <td className="px-4 py-2 text-slate-700">
                     {d.label}
                     {i === currentIndex && (
-                      <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-600">
+                      <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
                         Current
                       </span>
                     )}

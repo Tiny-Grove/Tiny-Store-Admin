@@ -93,7 +93,7 @@ export default async function CustomerDetailPage({
       </Link>
 
       <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-sky-700 text-lg font-semibold text-white shadow-md shadow-sky-700/25">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-700 text-lg font-semibold text-white shadow-md shadow-brand-700/25">
           {initials(displayName)}
         </div>
         <div className="flex-1">
@@ -111,7 +111,7 @@ export default async function CustomerDetailPage({
               {customer.account_status}
             </span>
             {activeSubscription && (
-              <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700">
+              <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">
                 {activeSubscription.plan_name ?? activeSubscription.plan}
               </span>
             )}
@@ -151,7 +151,7 @@ export default async function CustomerDetailPage({
                   name="name"
                   defaultValue={customer.name ?? ""}
                   placeholder="Jane Doe"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
                 />
               </div>
               <div>
@@ -162,7 +162,7 @@ export default async function CustomerDetailPage({
                   name="company"
                   defaultValue={customer.company ?? ""}
                   placeholder="Acme Ltd"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
                 />
               </div>
             </div>
@@ -174,7 +174,7 @@ export default async function CustomerDetailPage({
               <select
                 name="country"
                 defaultValue={customer.country ?? ""}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               >
                 <option value="">No country set</option>
                 {COUNTRIES.map((country) => (
@@ -192,7 +192,7 @@ export default async function CustomerDetailPage({
               <select
                 name="industry_id"
                 defaultValue={customer.industry_id ?? ""}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               >
                 <option value="">No industry set</option>
                 {industryOptions.map((industry) => (
@@ -230,7 +230,7 @@ export default async function CustomerDetailPage({
 
             <button
               type="submit"
-              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0"
             >
               Save changes
             </button>
@@ -257,7 +257,7 @@ export default async function CustomerDetailPage({
                   href={storeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="truncate text-sm font-medium text-sky-600 hover:underline"
+                  className="truncate text-sm font-medium text-brand-600 hover:underline"
                 >
                   {storeUrl}
                 </a>
@@ -431,7 +431,7 @@ export default async function CustomerDetailPage({
                 name="name"
                 required
                 placeholder="Product name"
-                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               />
             </div>
             <div>
@@ -441,7 +441,7 @@ export default async function CustomerDetailPage({
               <input
                 name="description"
                 placeholder="Optional"
-                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               />
             </div>
             <div>
@@ -455,7 +455,7 @@ export default async function CustomerDetailPage({
                 min="0"
                 required
                 placeholder="0.00"
-                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               />
             </div>
             <div>
@@ -467,12 +467,12 @@ export default async function CustomerDetailPage({
                 type="number"
                 min="0"
                 defaultValue={0}
-                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               />
             </div>
             <button
               type="submit"
-              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0"
             >
               Add product
             </button>
@@ -520,13 +520,13 @@ export default async function CustomerDetailPage({
                       name="name"
                       defaultValue={product.name}
                       required
-                      className="min-w-30 flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                      className="min-w-30 flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
                     />
                     <input
                       name="description"
                       defaultValue={product.description ?? ""}
                       placeholder="Description"
-                      className="min-w-35 flex-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                      className="min-w-35 flex-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
                     />
                     <input
                       name="price"
@@ -534,7 +534,7 @@ export default async function CustomerDetailPage({
                       step="0.01"
                       min="0"
                       defaultValue={(product.price_cents / 100).toFixed(2)}
-                      className="w-24 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                      className="w-24 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
                     />
                     <input
                       name="stock_count"
@@ -542,7 +542,7 @@ export default async function CustomerDetailPage({
                       min="0"
                       defaultValue={product.stock_count}
                       title="Stock"
-                      className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+                      className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
                     />
                     <button
                       type="submit"
@@ -579,11 +579,11 @@ export default async function CustomerDetailPage({
             name="body"
             placeholder="Add a note…"
             required
-            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition-shadow duration-150 outline-none placeholder:text-slate-400 focus:border-sky-300 focus:ring-2 focus:ring-sky-100"
+            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition-shadow duration-150 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
           />
           <button
             type="submit"
-            className="shrink-0 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-md active:translate-y-0"
+            className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0"
           >
             Add
           </button>
