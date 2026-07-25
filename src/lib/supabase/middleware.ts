@@ -13,10 +13,17 @@ const FULLY_PUBLIC_PATHS = [
   "/api/plans",
   "/store",
   "/api/webhooks/stripe-connect",
+  "/api/webhooks/stripe",
 ];
 
 // Paths in the admin area reachable without an admin session.
 const ADMIN_PUBLIC_PATHS = ["/login", "/auth/callback"];
+
+// Admin-area paths that require the "admin" role specifically — "staff"
+// can reach everything else. Higher blast radius than day-to-day
+// customer/support work: money (Finance, business Analytics) and access
+// control (Settings, which now manages admin_users).
+const ADMIN_ONLY_PATHS = ["/settings", "/finance", "/analytics"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -72,7 +79,7 @@ export async function updateSession(request: NextRequest) {
     const admin = createAdminClient();
     const { data: adminRow } = await admin
       .from("admin_users")
-      .select("active")
+      .select("active, role")
       .eq("email", user.email!.toLowerCase())
       .maybeSingle();
 
@@ -80,6 +87,11 @@ export async function updateSession(request: NextRequest) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("error", "access_denied");
       return NextResponse.redirect(loginUrl);
+    }
+
+    const isAdminOnlyPath = ADMIN_ONLY_PATHS.some((p) => path.startsWith(p));
+    if (isAdminOnlyPath && adminRow.role !== "admin") {
+      return NextResponse.redirect(new URL("/", request.url));
     }
   }
 

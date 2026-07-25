@@ -1,22 +1,11 @@
 import "server-only";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import { emptyMonthBuckets, monthKey, monthLabel } from "@/lib/date-buckets";
 
 export interface MonthlyRevenue {
   key: string; // "2026-01"
   label: string; // "Jan 26"
   amountCents: number;
-}
-
-function monthKey(d: Date) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function monthLabel(key: string) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-GB", {
-    month: "short",
-    year: "2-digit",
-  });
 }
 
 // Revenue is derived live from Stripe's paid invoices (the actual settled
@@ -28,16 +17,9 @@ export async function getMonthlyRevenue(
 ): Promise<MonthlyRevenue[]> {
   if (!isStripeConfigured()) return [];
 
-  const now = new Date();
-  const start = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (monthsBack - 1), 1)
-  );
-
-  const buckets = new Map<string, number>();
-  for (let i = 0; i < monthsBack; i++) {
-    const d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i, 1));
-    buckets.set(monthKey(d), 0);
-  }
+  const buckets = emptyMonthBuckets(monthsBack);
+  const [oldestYear, oldestMonth] = buckets.keys().next().value!.split("-").map(Number);
+  const start = new Date(Date.UTC(oldestYear, oldestMonth - 1, 1));
 
   const stripe = getStripe();
   await stripe.invoices

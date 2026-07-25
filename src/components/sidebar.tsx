@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-type NavItem = { href: string; label: string; icon: ReactNode };
+type NavItem = { href: string; label: string; icon: ReactNode; adminOnly?: boolean };
 
 const overviewIcon = (
   <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5">
@@ -14,6 +14,17 @@ const overviewIcon = (
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const analyticsIcon = (
+  <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5">
+    <path
+      d="M3.5 16.5h13M6 16v-4.5M10 16V6M14 16v-7.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
     />
   </svg>
 );
@@ -92,14 +103,17 @@ const settingsIcon = (
 export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "Overview",
-    items: [{ href: "/", label: "Dashboard", icon: overviewIcon }],
+    items: [
+      { href: "/", label: "Dashboard", icon: overviewIcon },
+      { href: "/analytics", label: "Analytics", icon: analyticsIcon, adminOnly: true },
+    ],
   },
   {
     label: "Sales",
     items: [
       { href: "/customers", label: "Customers", icon: customersIcon },
       { href: "/subscriptions", label: "Subscriptions", icon: subscriptionsIcon },
-      { href: "/finance", label: "Finance", icon: financeIcon },
+      { href: "/finance", label: "Finance", icon: financeIcon, adminOnly: true },
     ],
   },
   {
@@ -111,7 +125,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   },
   {
     label: "Admin",
-    items: [{ href: "/settings", label: "Settings", icon: settingsIcon }],
+    items: [{ href: "/settings", label: "Settings", icon: settingsIcon, adminOnly: true }],
   },
 ];
 
@@ -122,12 +136,16 @@ export function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar() {
+export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
+  const groups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !item.adminOnly || isAdmin),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <nav className="flex flex-col gap-5 p-3">
-      {NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.label}>
           <p className="px-3 pb-1.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
             {group.label}

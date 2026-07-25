@@ -10,34 +10,44 @@ import { formatMoney } from "@/lib/format";
 async function getStats() {
   const supabase = createAdminClient();
 
-  const [totalCustomers, activeSubscriptions, pastDue, openTickets, stockLevels] =
-    await Promise.all([
-      supabase.from("customers").select("*", { count: "exact", head: true }),
-      supabase
-        .from("subscriptions")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "active"),
-      supabase
-        .from("subscriptions")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "past_due"),
-      supabase
-        .from("support_tickets")
-        .select("*", { count: "exact", head: true })
-        .in("status", ["open", "pending"]),
-      supabase.from("products").select("stock_count, low_stock_threshold"),
-    ]);
-
-  const lowStockCount = (stockLevels.data ?? []).filter(
-    (p) => p.stock_count <= p.low_stock_threshold
-  ).length;
+  const [
+    totalCustomers,
+    activeSubscriptions,
+    pastDue,
+    openTickets,
+    unsubscribed,
+    churned,
+  ] = await Promise.all([
+    supabase.from("customers").select("*", { count: "exact", head: true }),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "past_due"),
+    supabase
+      .from("support_tickets")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["open", "pending"]),
+    supabase
+      .from("customers")
+      .select("*", { count: "exact", head: true })
+      .eq("email_opt_out", true),
+    supabase
+      .from("subscription_events")
+      .select("*", { count: "exact", head: true })
+      .eq("event_type", "canceled"),
+  ]);
 
   return {
     totalCustomers: totalCustomers.count ?? 0,
     activeSubscriptions: activeSubscriptions.count ?? 0,
     pastDue: pastDue.count ?? 0,
     openTickets: openTickets.count ?? 0,
-    lowStockCount,
+    unsubscribedCount: unsubscribed.count ?? 0,
+    churnedCount: churned.count ?? 0,
   };
 }
 
@@ -118,24 +128,18 @@ const ICONS: Record<string, ReactNode> = {
       <circle cx="10" cy="14" r="0.9" fill="currentColor" />
     </svg>
   ),
-  stock: (
+  churn: (
     <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5">
+      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M3 6.5 10 3l7 3.5M3 6.5v7l7 3.5m-7-10.5 7 3.5m0 7v-7m0 7 7-3.5v-7"
+        d="M7.5 7.5l5 5M12.5 7.5l-5 5"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   ),
 };
-
-const QUICK_ACTIONS = [
-  { href: "/customers/new", label: "New customer" },
-  { href: "/emails/new", label: "New email template" },
-  { href: "/settings", label: "Settings" },
-];
 
 export default async function DashboardPage() {
   const stripeConfigured = isStripeConfigured();
@@ -187,35 +191,15 @@ export default async function DashboardPage() {
       href: "/support",
       accent: "bg-brand-50 text-brand-700",
     },
-    {
-      key: "stock",
-      label: "Low-stock products",
-      value: stats.lowStockCount,
-      href: "/customers",
-      accent: "bg-amber-50 text-amber-600",
-    },
   ];
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            At a glance — customers, revenue, and what needs attention.
-          </p>
-        </div>
-        <div className="hidden gap-2 sm:flex">
-          {QUICK_ACTIONS.map((action) => (
-            <Link
-              key={action.href}
-              href={action.href}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
-            >
-              {action.label}
-            </Link>
-          ))}
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          At a glance — customers, revenue, and what needs attention.
+        </p>
       </div>
 
       <div
@@ -272,6 +256,30 @@ export default async function DashboardPage() {
               )}
             </Link>
           ))}
+
+          <Link
+            href="/analytics"
+            style={{ animationDelay: `${(attentionCards.length + 4) * 75}ms` }}
+            className="animate-fade-in-up flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+              {ICONS.churn}
+            </div>
+            <div className="flex flex-1 items-center justify-between gap-4">
+              <div>
+                <p className="text-sm text-slate-500">Unsubscribed</p>
+                <p className="mt-0.5 text-xl font-semibold text-slate-900">
+                  {stats.unsubscribedCount}
+                </p>
+              </div>
+              <div className="border-l border-slate-100 pl-4">
+                <p className="text-sm text-slate-500">Churned</p>
+                <p className="mt-0.5 text-xl font-semibold text-slate-900">
+                  {stats.churnedCount}
+                </p>
+              </div>
+            </div>
+          </Link>
         </div>
       </section>
 

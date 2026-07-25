@@ -10,14 +10,15 @@ import { formatMoney } from "@/lib/format";
 import {
   addNote,
   addProduct,
-  deleteProduct,
   syncSubscriptionsFromStripe,
-  updateProduct,
   updateStoreInfo,
   uploadCustomerFavicon,
   uploadCustomerLogo,
 } from "./actions";
 import { NewSubscriptionForm } from "./new-subscription-form";
+import { InventoryList } from "./inventory-list";
+import { RenewalsModal } from "./renewals-modal";
+import { getRenewalCounts } from "@/lib/renewals";
 
 function initials(name: string) {
   return name
@@ -64,6 +65,22 @@ export default async function CustomerDetailPage({
 
   const inventory = products ?? [];
   const industryOptions = industries ?? [];
+
+  const stripeSubscriptionIds = customer.subscriptions
+    .map((sub) => sub.stripe_subscription_id)
+    .filter((id): id is string => !!id);
+  const renewalCounts =
+    isStripeConfigured() && stripeSubscriptionIds.length > 0
+      ? await getRenewalCounts(stripeSubscriptionIds)
+      : new Map<string, number>();
+  const renewalRows = customer.subscriptions
+    .filter((sub) => sub.stripe_subscription_id)
+    .map((sub) => ({
+      id: sub.id,
+      label: sub.plan_name ?? sub.plan,
+      renewals: renewalCounts.get(sub.stripe_subscription_id!) ?? 0,
+    }));
+  const totalRenewals = renewalRows.reduce((sum, row) => sum + row.renewals, 0);
 
   const displayName = customer.name ?? customer.email;
   const activeSubscription =
@@ -353,16 +370,21 @@ export default async function CustomerDetailPage({
       <section className="animate-fade-in-up">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-medium text-slate-900">Subscriptions</h2>
-          {isStripeConfigured() && customer.stripe_customer_id && (
-            <form action={syncSubscriptionsFromStripe.bind(null, customer.id)}>
-              <button
-                type="submit"
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
-              >
-                Sync from Stripe
-              </button>
-            </form>
-          )}
+          <div className="flex items-center gap-2">
+            {renewalRows.length > 0 && (
+              <RenewalsModal rows={renewalRows} totalRenewals={totalRenewals} />
+            )}
+            {isStripeConfigured() && customer.stripe_customer_id && (
+              <form action={syncSubscriptionsFromStripe.bind(null, customer.id)}>
+                <button
+                  type="submit"
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                >
+                  Sync from Stripe
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
         {isStripeConfigured() && (
@@ -479,94 +501,7 @@ export default async function CustomerDetailPage({
           </form>
         </div>
 
-        {inventory.length === 0 ? (
-          <p className="text-sm text-slate-500">No products yet.</p>
-        ) : (
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="hidden items-center gap-2 border-b border-slate-100 px-4 py-2 text-xs font-medium tracking-wide text-slate-400 uppercase sm:flex">
-              <span className="w-12 shrink-0" />
-              <span className="flex-1">Name</span>
-              <span className="flex-2">Description</span>
-              <span className="w-24">Price</span>
-              <span className="w-20">Stock</span>
-              <span className="w-16" />
-            </div>
-            <div className="divide-y divide-slate-100">
-              {inventory.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-start gap-3 px-4 py-3 text-sm"
-                >
-                  {product.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.image_url}
-                      alt=""
-                      className="h-10 w-10 shrink-0 rounded-lg border border-slate-200 object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-slate-300 text-[10px] text-slate-400">
-                      None
-                    </div>
-                  )}
-
-                  <form
-                    action={updateProduct}
-                    className="flex flex-1 flex-wrap items-center gap-2"
-                  >
-                    <input type="hidden" name="customerId" value={customer.id} />
-                    <input type="hidden" name="productId" value={product.id} />
-                    <input
-                      name="name"
-                      defaultValue={product.name}
-                      required
-                      className="min-w-30 flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-                    />
-                    <input
-                      name="description"
-                      defaultValue={product.description ?? ""}
-                      placeholder="Description"
-                      className="min-w-35 flex-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-                    />
-                    <input
-                      name="price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      defaultValue={(product.price_cents / 100).toFixed(2)}
-                      className="w-24 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-                    />
-                    <input
-                      name="stock_count"
-                      type="number"
-                      min="0"
-                      defaultValue={product.stock_count}
-                      title="Stock"
-                      className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-                    />
-                    <button
-                      type="submit"
-                      className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
-                    >
-                      Save
-                    </button>
-                  </form>
-
-                  <form action={deleteProduct}>
-                    <input type="hidden" name="customerId" value={customer.id} />
-                    <input type="hidden" name="productId" value={product.id} />
-                    <button
-                      type="submit"
-                      className="shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
-                    >
-                      Delete
-                    </button>
-                  </form>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <InventoryList customerId={customer.id} products={inventory} />
       </section>
 
       </div>

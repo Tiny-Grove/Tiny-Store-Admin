@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { Logo } from "@/components/logo";
@@ -13,6 +14,16 @@ export default async function AppLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let isAdmin = false;
+  if (user?.email) {
+    const { data: adminRow } = await createAdminClient()
+      .from("admin_users")
+      .select("role")
+      .eq("email", user.email.toLowerCase())
+      .maybeSingle();
+    isAdmin = adminRow?.role === "admin";
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -24,7 +35,7 @@ export default async function AppLayout({
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <Sidebar />
+          <Sidebar isAdmin={isAdmin} />
         </div>
       </aside>
 

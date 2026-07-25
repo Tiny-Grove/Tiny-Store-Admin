@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/require-admin";
+import type { AdminRole } from "@/lib/supabase/types";
 
 // Grows the shared industry list — every customer profile's Industry
 // dropdown reads from this same table.
@@ -16,4 +18,49 @@ export async function addIndustry(formData: FormData) {
 
   revalidatePath("/settings");
   revalidatePath("/customers", "layout");
+}
+
+// Pre-creates the admin_users row so the invited person can sign in — actual
+// account creation still happens on their first Google OAuth login (see
+// src/app/auth/callback/route.ts), which requires both this row (active)
+// and a tinygrove.co.uk email.
+export async function addAdminUser(formData: FormData) {
+  if (!(await requireAdmin())) return;
+
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
+  const role = (formData.get("role") as AdminRole) || "staff";
+  if (!email) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("admin_users")
+    .upsert({ email, role, active: true }, { onConflict: "email" });
+
+  revalidatePath("/settings");
+}
+
+export async function updateAdminUserRole(formData: FormData) {
+  if (!(await requireAdmin())) return;
+
+  const id = formData.get("id") as string;
+  const role = formData.get("role") as AdminRole;
+  if (!id || !role) return;
+
+  const admin = createAdminClient();
+  await admin.from("admin_users").update({ role }).eq("id", id);
+
+  revalidatePath("/settings");
+}
+
+export async function toggleAdminUserActive(formData: FormData) {
+  if (!(await requireAdmin())) return;
+
+  const id = formData.get("id") as string;
+  const currentlyActive = formData.get("active") === "true";
+  if (!id) return;
+
+  const admin = createAdminClient();
+  await admin.from("admin_users").update({ active: !currentlyActive }).eq("id", id);
+
+  revalidatePath("/settings");
 }

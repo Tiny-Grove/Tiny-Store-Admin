@@ -68,6 +68,18 @@ export interface Subscription {
   updated_at: string;
 }
 
+export type SubscriptionEventType = "canceled" | "reactivated";
+
+export interface SubscriptionEvent {
+  id: string;
+  subscription_id: string;
+  customer_id: string;
+  event_type: SubscriptionEventType;
+  stripe_event_id: string;
+  occurred_at: string;
+  created_at: string;
+}
+
 export interface Note {
   id: string;
   customer_id: string;

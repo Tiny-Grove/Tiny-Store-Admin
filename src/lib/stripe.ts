@@ -1,7 +1,23 @@
 import "server-only";
 import Stripe from "stripe";
+import type { SubscriptionStatus } from "@/lib/supabase/types";
 
 let stripe: Stripe | null = null;
+
+export function mapStripeStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
+  switch (status) {
+    case "active":
+      return "active";
+    case "trialing":
+      return "trialing";
+    case "past_due":
+    case "unpaid":
+      return "past_due";
+    default:
+      // canceled, incomplete, incomplete_expired, paused
+      return "canceled";
+  }
+}
 
 export function isStripeConfigured() {
   return !!process.env.STRIPE_SECRET_KEY;

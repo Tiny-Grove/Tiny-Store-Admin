@@ -1,15 +1,13 @@
 "use server";
 
-import type Stripe from "stripe";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import { getStripe, isStripeConfigured, mapStripeStatus } from "@/lib/stripe";
 import { priceProductName } from "@/lib/stripe-plans";
 import { uploadCustomerAsset } from "@/lib/customer-assets";
 import { parsePriceToCents } from "@/lib/format";
 import { generateProductCode } from "@/lib/product-code";
-import type { SubscriptionStatus } from "@/lib/supabase/types";
 
 export async function addNote(formData: FormData) {
   const supabase = await createClient();
@@ -222,21 +220,6 @@ export async function createCheckoutAction(
   if (!session.url) return { error: "Stripe didn't return a checkout URL." };
 
   return { url: session.url };
-}
-
-function mapStripeStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
-  switch (status) {
-    case "active":
-      return "active";
-    case "trialing":
-      return "trialing";
-    case "past_due":
-    case "unpaid":
-      return "past_due";
-    default:
-      // canceled, incomplete, incomplete_expired, paused
-      return "canceled";
-  }
 }
 
 // Pulls this customer's current subscriptions from Stripe into our local

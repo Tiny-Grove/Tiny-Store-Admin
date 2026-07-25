@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getStripe, getStripeMode, isStripeConfigured } from "@/lib/stripe";
 import { getMailgunClient, getMailgunDomain, isMailgunConfigured } from "@/lib/mailgun";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Industry } from "@/lib/supabase/types";
-import { addIndustry } from "./actions";
+import type { AdminUser, Industry } from "@/lib/supabase/types";
+import { addAdminUser, addIndustry, toggleAdminUserActive, updateAdminUserRole } from "./actions";
 
 async function getStripeStatus() {
   if (!isStripeConfigured()) {
@@ -39,12 +40,24 @@ async function getMailgunStatus() {
 }
 
 export default async function SettingsPage() {
-  const [stripeStatus, mailgunStatus, { data: industries }] = await Promise.all([
-    getStripeStatus(),
-    getMailgunStatus(),
-    createAdminClient().from("industries").select("*").order("name").returns<Industry[]>(),
-  ]);
+  const supabase = await createClient();
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser();
+
+  const [stripeStatus, mailgunStatus, { data: industries }, { data: adminUsers }] =
+    await Promise.all([
+      getStripeStatus(),
+      getMailgunStatus(),
+      createAdminClient().from("industries").select("*").order("name").returns<Industry[]>(),
+      createAdminClient()
+        .from("admin_users")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .returns<AdminUser[]>(),
+    ]);
   const industryOptions = industries ?? [];
+  const admins = adminUsers ?? [];
   const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN ?? "tinygrove.co.uk";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "Not configured";
   const siteUrl = process.env.PUBLIC_SITE_URL;
@@ -203,7 +216,10 @@ export default async function SettingsPage() {
           <h2 className="font-medium text-slate-900">Access control</h2>
           <p className="mt-1 text-sm text-slate-500">
             Google sign-in is restricted to this Workspace domain and to
-            active rows in the admin allowlist.
+            active rows in the admin allowlist below. The{" "}
+            <span className="font-medium">admin</span> role can reach
+            Settings, Finance, and Analytics; <span className="font-medium">staff</span>{" "}
+            can&apos;t.
           </p>
           <dl className="mt-4 text-sm">
             <dt className="text-slate-500">Allowed domain</dt>
@@ -211,6 +227,95 @@ export default async function SettingsPage() {
               {allowedDomain}
             </dd>
           </dl>
+
+          <div className="mt-5 border-t border-slate-100 pt-4">
+            <h3 className="mb-2 text-sm font-medium text-slate-700">
+              Admin users
+            </h3>
+            {admins.length === 0 ? (
+              <p className="text-sm text-slate-500">No admin users yet.</p>
+            ) : (
+              <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                {admins.map((admin) => {
+                  const isSelf = admin.email === currentUser?.email?.toLowerCase();
+                  return (
+                    <div
+                      key={admin.id}
+                      className="flex flex-wrap items-center gap-3 px-3 py-2.5 text-sm"
+                    >
+                      <span className="flex-1 truncate font-medium text-slate-900">
+                        {admin.email}
+                        {isSelf && (
+                          <span className="ml-1.5 text-xs font-normal text-slate-400">
+                            (you)
+                          </span>
+                        )}
+                      </span>
+
+                      <form action={updateAdminUserRole} className="flex items-center gap-1.5">
+                        <input type="hidden" name="id" value={admin.id} />
+                        <select
+                          name="role"
+                          defaultValue={admin.role}
+                          disabled={isSelf}
+                          onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 disabled:opacity-50"
+                        >
+                          <option value="staff">Staff</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </form>
+
+                      <form action={toggleAdminUserActive}>
+                        <input type="hidden" name="id" value={admin.id} />
+                        <input type="hidden" name="active" value={String(admin.active)} />
+                        <button
+                          type="submit"
+                          disabled={isSelf}
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                            admin.active
+                              ? "bg-green-50 text-green-700 hover:bg-red-50 hover:text-red-700"
+                              : "bg-slate-100 text-slate-500 hover:bg-green-50 hover:text-green-700"
+                          }`}
+                        >
+                          {admin.active ? "Active" : "Deactivated"}
+                        </button>
+                      </form>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <form action={addAdminUser} className="mt-3 flex items-end gap-2">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs font-medium text-slate-700">
+                  Add an admin user
+                </label>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder={`name@${allowedDomain}`}
+                  required
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+                />
+              </div>
+              <select
+                name="role"
+                defaultValue="staff"
+                className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm text-slate-700 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+              >
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button
+                type="submit"
+                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                Add
+              </button>
+            </form>
+          </div>
         </section>
 
         <section
