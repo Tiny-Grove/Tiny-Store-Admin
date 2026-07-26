@@ -20,6 +20,7 @@ import { InventoryList } from "./inventory-list";
 import { RenewalsModal } from "./renewals-modal";
 import { getRenewalCounts } from "@/lib/renewals";
 import { getSiteUrl } from "@/lib/site-url";
+import { getConnectAccountStatus } from "@/lib/stripe-connect-status";
 
 function initials(name: string) {
   return name
@@ -83,6 +84,13 @@ export default async function CustomerDetailPage({
       renewals: renewalCounts.get(sub.stripe_subscription_id!) ?? 0,
     }));
   const totalRenewals = renewalRows.reduce((sum, row) => sum + row.renewals, 0);
+
+  const connectStatus = customer.stripe_connect_account_id
+    ? await getConnectAccountStatus(
+        customer.stripe_connect_account_id,
+        customer.stripe_connect_charges_enabled
+      )
+    : null;
 
   const displayName = customer.name ?? customer.email;
   const activeSubscription =
@@ -185,66 +193,48 @@ export default async function CustomerDetailPage({
               </div>
             </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Country
-              </label>
-              <select
-                name="country"
-                defaultValue={customer.country ?? ""}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-              >
-                <option value="">No country set</option>
-                {COUNTRIES.map((country) => (
-                  <option key={country.code} value={country.code}>
-                    {country.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Industry
-              </label>
-              <select
-                name="industry_id"
-                defaultValue={customer.industry_id ?? ""}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-              >
-                <option value="">No industry set</option>
-                {industryOptions.map((industry) => (
-                  <option key={industry.id} value={industry.id}>
-                    {industry.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Primary color
+                  Country
                 </label>
-                <input
-                  type="color"
-                  name="primary_color"
-                  defaultValue={customer.primary_color ?? "#4f46e5"}
-                  className="h-10 w-14 cursor-pointer rounded border border-slate-200"
-                />
+                <select
+                  name="country"
+                  defaultValue={customer.country ?? ""}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+                >
+                  <option value="">No country set</option>
+                  {COUNTRIES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Secondary color
+                  Industry
                 </label>
-                <input
-                  type="color"
-                  name="secondary_color"
-                  defaultValue={customer.secondary_color ?? "#0f172a"}
-                  className="h-10 w-14 cursor-pointer rounded border border-slate-200"
-                />
+                <select
+                  name="industry_id"
+                  defaultValue={customer.industry_id ?? ""}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+                >
+                  <option value="">No industry set</option>
+                  {industryOptions.map((industry) => (
+                    <option key={industry.id} value={industry.id}>
+                      {industry.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
+
+            {/* Kept in this form so one Save covers all core fields; styling
+                lives with the Branding section below. */}
+            <input type="hidden" name="primary_color" value={customer.primary_color ?? "#4f46e5"} />
+            <input type="hidden" name="secondary_color" value={customer.secondary_color ?? "#0f172a"} />
 
             <button
               type="submit"
@@ -253,42 +243,83 @@ export default async function CustomerDetailPage({
               Save changes
             </button>
           </form>
+        </div>
+      </section>
 
-          <div className="mt-6 border-t border-slate-100 pt-4">
-            <h3 className="mb-2 text-sm font-medium text-slate-700">
-              Storefront link
-            </h3>
-            {!customer.slug ? (
-              <p className="text-sm text-slate-500">
-                Not set up yet — the merchant picks their own storefront link
-                from the mobile app.
-              </p>
-            ) : !storeUrl ? (
-              <p className="text-sm text-amber-700">
-                Slug is set to &quot;{customer.slug}&quot;, but storefront
-                links aren&apos;t active until the storefront domain is set
-                in Settings.
-              </p>
-            ) : (
-              <div className="flex items-center gap-2">
-                <a
-                  href={storeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate text-sm font-medium text-brand-600 hover:underline"
-                >
-                  {storeUrl}
-                </a>
-                {!customer.stripe_connect_charges_enabled && (
-                  <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-700">
-                    Payments not enabled
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
+      <section className="animate-fade-in-up" style={{ animationDelay: "40ms" }}>
+        <h2 className="mb-3 text-lg font-medium text-slate-900">Storefront</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          {!customer.slug ? (
+            <p className="text-sm text-slate-500">
+              Not set up yet — the merchant picks their own storefront link
+              from the mobile app.
+            </p>
+          ) : !storeUrl ? (
+            <p className="text-sm text-amber-700">
+              Slug is set to &quot;{customer.slug}&quot;, but storefront
+              links aren&apos;t active until the storefront domain is set in
+              Settings.
+            </p>
+          ) : (
+            <div>
+              <h3 className="mb-1 text-sm font-medium text-slate-700">Link</h3>
+              <a
+                href={storeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-sm font-medium text-brand-600 hover:underline"
+              >
+                {storeUrl}
+              </a>
+            </div>
+          )}
+        </div>
+      </section>
 
-          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+      <section className="animate-fade-in-up" style={{ animationDelay: "55ms" }}>
+        <h2 className="mb-3 text-lg font-medium text-slate-900">Branding</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <form action={updateStoreInfo} className="grid grid-cols-2 gap-4">
+            <input type="hidden" name="customerId" value={customer.id} />
+            <input type="hidden" name="name" value={customer.name ?? ""} />
+            <input type="hidden" name="company" value={customer.company ?? ""} />
+            <input type="hidden" name="country" value={customer.country ?? ""} />
+            <input type="hidden" name="industry_id" value={customer.industry_id ?? ""} />
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Primary color
+              </label>
+              <input
+                type="color"
+                name="primary_color"
+                defaultValue={customer.primary_color ?? "#4f46e5"}
+                className="h-10 w-14 cursor-pointer rounded border border-slate-200"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Secondary color
+              </label>
+              <input
+                type="color"
+                name="secondary_color"
+                defaultValue={customer.secondary_color ?? "#0f172a"}
+                className="h-10 w-14 cursor-pointer rounded border border-slate-200"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <button
+                type="submit"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                Save colors
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
             <div>
               <h3 className="mb-2 text-sm font-medium text-slate-700">Logo</h3>
               <div className="flex items-center gap-3">
@@ -365,6 +396,85 @@ export default async function CustomerDetailPage({
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="animate-fade-in-up" style={{ animationDelay: "70ms" }}>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-medium text-slate-900">Stripe account</h2>
+          {connectStatus && (
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                connectStatus.chargesEnabled
+                  ? "bg-green-50 text-green-700"
+                  : "bg-amber-50 text-amber-700"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  connectStatus.chargesEnabled ? "bg-green-500" : "bg-amber-500"
+                }`}
+              />
+              {connectStatus.chargesEnabled
+                ? "Connected"
+                : connectStatus.detailsSubmitted
+                  ? "Restricted"
+                  : "Onboarding incomplete"}
+            </span>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          {!customer.stripe_connect_account_id || !connectStatus ? (
+            <p className="text-sm text-slate-500">
+              Not connected yet — the merchant connects Stripe from the
+              mobile app to accept storefront payments.
+            </p>
+          ) : (
+            <>
+              <dl className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <dt className="text-slate-500">Account ID</dt>
+                  <dd className="mt-0.5 truncate font-mono text-xs font-medium text-slate-900">
+                    {customer.stripe_connect_account_id}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Charges enabled</dt>
+                  <dd className="mt-0.5 font-medium text-slate-900">
+                    {connectStatus.chargesEnabled ? "Yes" : "No"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Payouts enabled</dt>
+                  <dd className="mt-0.5 font-medium text-slate-900">
+                    {connectStatus.payoutsEnabled ? "Yes" : "No"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Onboarding</dt>
+                  <dd className="mt-0.5 font-medium text-slate-900">
+                    {connectStatus.detailsSubmitted ? "Submitted" : "Incomplete"}
+                  </dd>
+                </div>
+              </dl>
+
+              {connectStatus.requirementsDue > 0 && (
+                <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  Stripe needs {connectStatus.requirementsDue} more{" "}
+                  {connectStatus.requirementsDue === 1 ? "item" : "items"} from
+                  the merchant before payments can go live.
+                </p>
+              )}
+
+              {connectStatus.error && (
+                <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                  Couldn&apos;t verify live status ({connectStatus.error}) —
+                  showing the last known state.
+                </p>
+              )}
+            </>
+          )}
         </div>
       </section>
 
