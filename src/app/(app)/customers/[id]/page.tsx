@@ -19,6 +19,7 @@ import { NewSubscriptionForm } from "./new-subscription-form";
 import { InventoryList } from "./inventory-list";
 import { RenewalsModal } from "./renewals-modal";
 import { getRenewalCounts } from "@/lib/renewals";
+import { getSiteUrl } from "@/lib/site-url";
 
 function initials(name: string) {
   return name
@@ -42,7 +43,7 @@ export default async function CustomerDetailPage({
   const { id } = await params;
 
   const supabase = createAdminClient();
-  const [{ data: customer }, enabledPlans, { data: products }, { data: industries }] =
+  const [{ data: customer }, enabledPlans, { data: products }, { data: industries }, siteUrl] =
     await Promise.all([
       supabase
         .from("customers")
@@ -59,6 +60,7 @@ export default async function CustomerDetailPage({
         .order("created_at", { ascending: false })
         .returns<Product[]>(),
       supabase.from("industries").select("*").order("name").returns<Industry[]>(),
+      getSiteUrl(),
     ]);
 
   if (!customer) notFound();
@@ -87,7 +89,6 @@ export default async function CustomerDetailPage({
     customer.subscriptions.find((sub) => sub.status === "active") ??
     customer.subscriptions[0];
 
-  const siteUrl = process.env.PUBLIC_SITE_URL;
   const storeUrl =
     siteUrl && customer.slug ? `${siteUrl}/store/${customer.slug}` : null;
 
@@ -265,8 +266,8 @@ export default async function CustomerDetailPage({
             ) : !storeUrl ? (
               <p className="text-sm text-amber-700">
                 Slug is set to &quot;{customer.slug}&quot;, but storefront
-                links aren&apos;t active until PUBLIC_SITE_URL is set in the
-                environment.
+                links aren&apos;t active until the storefront domain is set
+                in Settings.
               </p>
             ) : (
               <div className="flex items-center gap-2">

@@ -8,6 +8,7 @@ import { priceProductName } from "@/lib/stripe-plans";
 import { uploadCustomerAsset } from "@/lib/customer-assets";
 import { parsePriceToCents } from "@/lib/format";
 import { generateProductCode } from "@/lib/product-code";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function addNote(formData: FormData) {
   const supabase = await createClient();
@@ -175,11 +176,10 @@ export async function createCheckoutAction(
   const priceId = formData.get("priceId") as string;
   if (!customerId || !priceId) return { error: "Choose a plan." };
 
-  const siteUrl = process.env.PUBLIC_SITE_URL;
+  const siteUrl = await getSiteUrl();
   if (!siteUrl) {
     return {
-      error:
-        "Set PUBLIC_SITE_URL in your environment before creating checkout links (see Settings).",
+      error: "Set the storefront domain in Settings before creating checkout links.",
     };
   }
 

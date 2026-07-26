@@ -64,3 +64,21 @@ export async function toggleAdminUserActive(formData: FormData) {
 
   revalidatePath("/settings");
 }
+
+// The storefront/checkout base URL, editable here instead of only via the
+// PUBLIC_SITE_URL env var (see src/lib/site-url.ts for how it's read).
+export async function updateSiteUrl(formData: FormData) {
+  if (!(await requireAdmin())) return;
+
+  const raw = (formData.get("site_url") as string)?.trim() ?? "";
+  const siteUrl = raw.replace(/\/+$/, ""); // strip trailing slash(es) — callers append their own leading "/"
+
+  const admin = createAdminClient();
+  await admin
+    .from("site_settings")
+    .update({ site_url: siteUrl || null })
+    .eq("id", 1);
+
+  revalidatePath("/settings");
+  revalidatePath("/customers", "layout");
+}

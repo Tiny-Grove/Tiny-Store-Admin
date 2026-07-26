@@ -97,6 +97,12 @@ export interface AdminUser {
   updated_at: string;
 }
 
+export interface SiteSettings {
+  id: number;
+  site_url: string | null;
+  updated_at: string;
+}
+
 export interface StripePlanSetting {
   stripe_price_id: string;
   enabled: boolean;

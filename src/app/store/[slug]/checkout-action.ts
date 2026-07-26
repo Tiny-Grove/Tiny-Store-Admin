@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
+import { getSiteUrl } from "@/lib/site-url";
 
 export type CartItem = { productId: string; quantity: number };
 export type CheckoutResult = { url?: string; error?: string };
@@ -9,7 +10,7 @@ export type CheckoutResult = { url?: string; error?: string };
 export async function createStorefrontCheckout(slug: string, items: CartItem[]): Promise<CheckoutResult> {
   if (items.length === 0) return { error: "Your cart is empty." };
 
-  const siteUrl = process.env.PUBLIC_SITE_URL;
+  const siteUrl = await getSiteUrl();
   if (!siteUrl) return { error: "Storefront checkout isn't configured yet." };
 
   const admin = createAdminClient();

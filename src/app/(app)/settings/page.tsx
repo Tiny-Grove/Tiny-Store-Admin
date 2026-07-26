@@ -3,8 +3,14 @@ import { getStripe, getStripeMode, isStripeConfigured } from "@/lib/stripe";
 import { getMailgunClient, getMailgunDomain, isMailgunConfigured } from "@/lib/mailgun";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AdminUser, Industry } from "@/lib/supabase/types";
-import { addAdminUser, addIndustry, toggleAdminUserActive, updateAdminUserRole } from "./actions";
+import type { AdminUser, Industry, SiteSettings } from "@/lib/supabase/types";
+import {
+  addAdminUser,
+  addIndustry,
+  toggleAdminUserActive,
+  updateAdminUserRole,
+  updateSiteUrl,
+} from "./actions";
 import { RoleSelect } from "./role-select";
 
 async function getStripeStatus() {
@@ -46,7 +52,7 @@ export default async function SettingsPage() {
     data: { user: currentUser },
   } = await supabase.auth.getUser();
 
-  const [stripeStatus, mailgunStatus, { data: industries }, { data: adminUsers }] =
+  const [stripeStatus, mailgunStatus, { data: industries }, { data: adminUsers }, { data: siteSettingsRow }] =
     await Promise.all([
       getStripeStatus(),
       getMailgunStatus(),
@@ -56,12 +62,18 @@ export default async function SettingsPage() {
         .select("*")
         .order("created_at", { ascending: true })
         .returns<AdminUser[]>(),
+      createAdminClient()
+        .from("site_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle<SiteSettings>(),
     ]);
   const industryOptions = industries ?? [];
   const admins = adminUsers ?? [];
   const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN ?? "tinygrove.co.uk";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "Not configured";
-  const siteUrl = process.env.PUBLIC_SITE_URL;
+  const configuredSiteUrl = siteSettingsRow?.site_url ?? null;
+  const siteUrl = configuredSiteUrl || process.env.PUBLIC_SITE_URL || null;
   const mailgunDomain = process.env.MAILGUN_DOMAIN || "Not set";
   const mailgunFrom = process.env.MAILGUN_FROM_EMAIL || "Not set";
 
@@ -141,10 +153,9 @@ export default async function SettingsPage() {
 
           {stripeStatus.connected && !siteUrl && (
             <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              Set PUBLIC_SITE_URL to Tiny Store&apos;s customer-facing site
-              before creating subscription checkout links — customers can&apos;t
-              sign in to this admin app, so it can&apos;t be used as the
-              redirect target.
+              Set the storefront domain below before creating subscription
+              checkout links — customers can&apos;t sign in to this admin
+              app, so it can&apos;t be used as the redirect target.
             </p>
           )}
         </section>
@@ -152,6 +163,50 @@ export default async function SettingsPage() {
         <section
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
           style={{ animationDelay: "75ms" }}
+        >
+          <h2 className="font-medium text-slate-900">Storefront domain</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            The base URL used for customer storefront links and Stripe
+            checkout redirects (e.g. subscription and product purchases).
+          </p>
+
+          <dl className="mt-4 text-sm">
+            <dt className="text-slate-500">Current value</dt>
+            <dd className="mt-0.5 truncate font-medium text-slate-900">
+              {siteUrl ?? "Not set"}
+              {!configuredSiteUrl && process.env.PUBLIC_SITE_URL && (
+                <span className="ml-1.5 text-xs font-normal text-slate-400">
+                  (from PUBLIC_SITE_URL env var)
+                </span>
+              )}
+            </dd>
+          </dl>
+
+          <form action={updateSiteUrl} className="mt-4 flex items-end gap-2">
+            <div className="flex-1">
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                Domain
+              </label>
+              <input
+                name="site_url"
+                type="url"
+                defaultValue={configuredSiteUrl ?? ""}
+                placeholder="https://app.tinystore.example"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0"
+            >
+              Save
+            </button>
+          </form>
+        </section>
+
+        <section
+          className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          style={{ animationDelay: "150ms" }}
         >
           <div className="flex items-start justify-between">
             <div>
@@ -212,7 +267,7 @@ export default async function SettingsPage() {
 
         <section
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-          style={{ animationDelay: "150ms" }}
+          style={{ animationDelay: "225ms" }}
         >
           <h2 className="font-medium text-slate-900">Access control</h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -312,7 +367,7 @@ export default async function SettingsPage() {
 
         <section
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-          style={{ animationDelay: "225ms" }}
+          style={{ animationDelay: "300ms" }}
         >
           <h2 className="font-medium text-slate-900">Industries</h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -357,7 +412,7 @@ export default async function SettingsPage() {
 
         <section
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-          style={{ animationDelay: "300ms" }}
+          style={{ animationDelay: "375ms" }}
         >
           <h2 className="font-medium text-slate-900">Database</h2>
           <p className="mt-1 text-sm text-slate-500">
