@@ -231,6 +231,23 @@ export default async function CustomerDetailPage({
               </div>
             </div>
 
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Storefront slogan
+              </label>
+              <input
+                name="slogan"
+                defaultValue={customer.slogan ?? ""}
+                placeholder="e.g. Fresh bakes, made daily"
+                maxLength={120}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Shown under the store name on the public storefront, in place
+                of the old &quot;Powered by Tiny Store&quot; line.
+              </p>
+            </div>
+
             {/* Kept in this form so one Save covers all core fields; styling
                 lives with the Branding section below. */}
             <input type="hidden" name="primary_color" value={customer.primary_color ?? "#4f46e5"} />
@@ -285,6 +302,7 @@ export default async function CustomerDetailPage({
             <input type="hidden" name="company" value={customer.company ?? ""} />
             <input type="hidden" name="country" value={customer.country ?? ""} />
             <input type="hidden" name="industry_id" value={customer.industry_id ?? ""} />
+            <input type="hidden" name="slogan" value={customer.slogan ?? ""} />
 
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">

@@ -41,51 +41,29 @@ export default async function StorefrontPage({
           "--brand-secondary": secondary,
         } as React.CSSProperties
       }
-      className="min-h-screen bg-slate-50"
+      className="flex min-h-screen flex-col bg-slate-50"
     >
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center gap-4 px-6 py-6">
-          {merchant.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={merchant.logo_url}
-              alt={merchant.company ?? "Logo"}
-              className="h-14 w-14 rounded-lg border border-slate-200 object-contain p-1"
-            />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[var(--brand-primary)] text-lg font-semibold text-white">
-              {(merchant.company ?? "S").charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">
-              {merchant.company ?? "Store"}
-            </h1>
-            <p className="text-sm text-slate-500">Powered by Tiny Store</p>
-          </div>
-        </div>
-      </header>
+      <StorefrontCart
+        slug={slug}
+        merchantName={merchant.company ?? "Store"}
+        logoUrl={merchant.logo_url}
+        slogan={merchant.slogan}
+        products={products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          priceCents: p.price_cents,
+          currency: p.currency,
+          imageUrl: p.image_url,
+          stockCount: p.stock_count,
+        }))}
+      />
 
-      <main className="mx-auto max-w-4xl px-6 py-8">
-        {products.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            No products available right now — check back soon.
-          </p>
-        ) : (
-          <StorefrontCart
-            slug={slug}
-            products={products.map((p) => ({
-              id: p.id,
-              name: p.name,
-              description: p.description,
-              priceCents: p.price_cents,
-              currency: p.currency,
-              imageUrl: p.image_url,
-              stockCount: p.stock_count,
-            }))}
-          />
-        )}
-      </main>
+      <footer className="border-t border-slate-200 py-6">
+        <p className="text-center text-xs text-slate-400">
+          Powered by Tiny Store
+        </p>
+      </footer>
     </div>
   );
 }

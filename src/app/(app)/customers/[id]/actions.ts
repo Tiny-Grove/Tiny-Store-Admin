@@ -41,6 +41,7 @@ export async function updateStoreInfo(formData: FormData) {
   const industry_id = (formData.get("industry_id") as string) || null;
   const primary_color = (formData.get("primary_color") as string) || null;
   const secondary_color = (formData.get("secondary_color") as string) || null;
+  const slogan = (formData.get("slogan") as string)?.trim() || null;
 
   const admin = createAdminClient();
   await admin
@@ -52,6 +53,7 @@ export async function updateStoreInfo(formData: FormData) {
       industry_id,
       primary_color,
       secondary_color,
+      slogan,
       updated_at: new Date().toISOString(),
     })
     .eq("id", customerId);

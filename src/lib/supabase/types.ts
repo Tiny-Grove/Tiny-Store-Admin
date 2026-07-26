@@ -17,6 +17,7 @@ export interface Customer {
   activated_at: string | null;
   primary_color: string | null;
   secondary_color: string | null;
+  slogan: string | null;
   logo_url: string | null;
   favicon_url: string | null;
   industry_id: string | null;
