@@ -1,7 +1,36 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Customer, Product } from "@/lib/supabase/types";
 import StorefrontCart from "./storefront-cart";
+
+// Cached per-request so generateMetadata and the page body share one lookup
+// instead of querying the customer twice.
+const getMerchant = cache(async (slug: string) => {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("customers")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  return data as Customer | null;
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const merchant = await getMerchant(slug);
+  if (!merchant) return {};
+
+  return {
+    title: merchant.company ?? "Store",
+    icons: merchant.favicon_url ? { icon: merchant.favicon_url } : undefined,
+  };
+}
 
 export default async function StorefrontPage({
   params,
@@ -11,13 +40,7 @@ export default async function StorefrontPage({
   const { slug } = await params;
   const admin = createAdminClient();
 
-  const { data: customerData } = await admin
-    .from("customers")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const merchant = customerData as Customer | null;
+  const merchant = await getMerchant(slug);
   if (!merchant || !merchant.stripe_connect_charges_enabled) {
     notFound();
   }
