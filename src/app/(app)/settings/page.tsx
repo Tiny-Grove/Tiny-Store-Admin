@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AdminUser, Industry } from "@/lib/supabase/types";
 import { addAdminUser, addIndustry, toggleAdminUserActive, updateAdminUserRole } from "./actions";
+import { RoleSelect } from "./role-select";
 
 async function getStripeStatus() {
   if (!isStripeConfigured()) {
@@ -254,16 +255,7 @@ export default async function SettingsPage() {
 
                       <form action={updateAdminUserRole} className="flex items-center gap-1.5">
                         <input type="hidden" name="id" value={admin.id} />
-                        <select
-                          name="role"
-                          defaultValue={admin.role}
-                          disabled={isSelf}
-                          onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 disabled:opacity-50"
-                        >
-                          <option value="staff">Staff</option>
-                          <option value="admin">Admin</option>
-                        </select>
+                        <RoleSelect defaultValue={admin.role} disabled={isSelf} />
                       </form>
 
                       <form action={toggleAdminUserActive}>
