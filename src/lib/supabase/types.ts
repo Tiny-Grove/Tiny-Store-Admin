@@ -24,6 +24,9 @@ export interface Customer {
   slug: string | null;
   stripe_connect_account_id: string | null;
   stripe_connect_charges_enabled: boolean;
+  currency: string;
+  expo_push_token: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -43,7 +43,7 @@ export default async function EmailsPage() {
       </div>
 
       {!isMailgunConfigured() && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           Mailgun isn&apos;t connected yet.{" "}
           <Link href="/settings" className="underline">
             Set it up in Settings
@@ -163,7 +163,10 @@ export default async function EmailsPage() {
               </thead>
               <tbody>
                 {batchList.map((b) => (
-                  <tr key={b.id} className="border-t border-slate-100">
+                  <tr
+                    key={b.id}
+                    className="border-t border-slate-100 transition-colors duration-150 hover:bg-slate-50"
+                  >
                     <td className="px-4 py-3 font-medium text-slate-900">
                       {b.template_name}
                     </td>

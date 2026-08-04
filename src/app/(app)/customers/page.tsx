@@ -3,16 +3,27 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Customer, Subscription } from "@/lib/supabase/types";
 import { statusBadgeClasses, statusDotClasses } from "@/lib/status-badge";
 import { formatMoney } from "@/lib/format";
+import { restoreCustomer } from "./[id]/danger-zone-actions";
 
 type CustomerWithSubscriptions = Customer & { subscriptions: Subscription[] };
 
-export default async function CustomersPage() {
+export default async function CustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
+  const { archived: archivedParam } = await searchParams;
+  const showArchived = archivedParam === "1";
+
   const supabase = createAdminClient();
-  const { data } = await supabase
+  let query = supabase
     .from("customers")
     .select("*, subscriptions(*)")
     .order("created_at", { ascending: false })
     .order("created_at", { referencedTable: "subscriptions", ascending: false });
+  query = showArchived ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
+
+  const { data } = await query;
 
   const customers = (data ?? []) as CustomerWithSubscriptions[];
 
@@ -20,24 +31,36 @@ export default async function CustomersPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Customers</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            {showArchived ? "Archived customers" : "Customers"}
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {customers.length} {customers.length === 1 ? "customer" : "customers"} total
+            {customers.length} {customers.length === 1 ? "customer" : "customers"}{" "}
+            {showArchived ? "archived" : "total"} ·{" "}
+            <Link
+              href={showArchived ? "/customers" : "/customers?archived=1"}
+              className="font-medium text-brand-600 hover:underline"
+            >
+              {showArchived ? "Back to customers" : "View archived"}
+            </Link>
           </p>
         </div>
-        <Link
-          href="/customers/new"
-          className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-md active:translate-y-0"
-        >
-          New customer
-        </Link>
+        {!showArchived && (
+          <Link
+            href="/customers/new"
+            className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-800 hover:shadow-md active:translate-y-0"
+          >
+            New customer
+          </Link>
+        )}
       </div>
 
       {customers.length === 0 ? (
         <div className="animate-fade-in-up rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
           <p className="text-sm text-slate-500">
-            No customers yet — once connected to the Tiny Store database,
-            they&apos;ll show up here.
+            {showArchived
+              ? "No archived customers."
+              : "No customers yet — once connected to the Tiny Store database, they'll show up here."}
           </p>
         </div>
       ) : (
@@ -51,6 +74,7 @@ export default async function CustomersPage() {
                 <th className="px-4 py-3">Plan</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">MRR</th>
+                {showArchived && <th className="px-4 py-3" />}
               </tr>
             </thead>
             <tbody>
@@ -114,6 +138,19 @@ export default async function CustomersPage() {
                     <td className="px-4 py-3 font-medium text-slate-900">
                       {sub ? formatMoney(sub.amount_cents) : "—"}
                     </td>
+                    {showArchived && (
+                      <td className="px-4 py-3 text-right">
+                        <form action={restoreCustomer}>
+                          <input type="hidden" name="customerId" value={customer.id} />
+                          <button
+                            type="submit"
+                            className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                          >
+                            Restore
+                          </button>
+                        </form>
+                      </td>
+                    )}
                   </tr>
                 );
               })}

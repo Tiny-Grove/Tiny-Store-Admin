@@ -24,22 +24,22 @@ export default async function SubscriptionsPage() {
   const plans = await listPricesWithEnabledState();
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            Subscriptions
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Choose which Stripe plans Tiny Store Admin should track.
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Subscriptions
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Choose which Stripe plans Tiny Store Admin should track.
+        </p>
       </div>
 
       {plans.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          No recurring prices found in your Stripe account.
-        </p>
+        <div className="animate-fade-in-up rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+          <p className="text-sm text-slate-500">
+            No recurring prices found in your Stripe account.
+          </p>
+        </div>
       ) : (
         <div className="animate-fade-in-up divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm">
           {plans.map(({ price, enabled }) => {
@@ -48,7 +48,7 @@ export default async function SubscriptionsPage() {
             return (
               <div
                 key={price.id}
-                className="flex items-center justify-between px-4 py-3.5 text-sm"
+                className="flex items-center justify-between px-4 py-3.5 text-sm transition-colors duration-150 hover:bg-slate-50"
               >
                 <div>
                   <p className="font-medium text-slate-900">

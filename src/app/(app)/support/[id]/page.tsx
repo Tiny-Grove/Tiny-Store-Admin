@@ -87,27 +87,32 @@ export default async function TicketDetailPage({
         {t.status}
       </span>
 
-      <div className="space-y-3">
-        {messageList.map((m) => {
-          const isAdmin = m.author_type === "admin";
-          return (
-            <div
-              key={m.id}
-              className={`max-w-[85%] rounded-xl border p-4 text-sm shadow-sm ${
-                isAdmin
-                  ? "ml-auto border-brand-100 bg-brand-50"
-                  : "border-slate-200 bg-white"
-              }`}
-            >
-              <p className="whitespace-pre-wrap text-slate-800">{m.body}</p>
-              <p className="mt-2 text-xs text-slate-400">
-                {isAdmin ? "Admin" : "Customer"} · {m.author_email} ·{" "}
-                {new Date(m.created_at).toLocaleString()}
-              </p>
-            </div>
-          );
-        })}
-      </div>
+      {messageList.length === 0 ? (
+        <p className="text-sm text-slate-500">No messages yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {messageList.map((m, i) => {
+            const isAdmin = m.author_type === "admin";
+            return (
+              <div
+                key={m.id}
+                style={{ animationDelay: `${i * 40}ms` }}
+                className={`animate-fade-in-up max-w-[85%] rounded-xl border p-4 text-sm shadow-sm ${
+                  isAdmin
+                    ? "ml-auto border-brand-100 bg-brand-50"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <p className="whitespace-pre-wrap text-slate-800">{m.body}</p>
+                <p className="mt-2 text-xs text-slate-400">
+                  {isAdmin ? "Admin" : "Customer"} · {m.author_email} ·{" "}
+                  {new Date(m.created_at).toLocaleString()}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <form action={replyToTicket} className="space-y-2">
         <input type="hidden" name="ticketId" value={t.id} />

@@ -77,18 +77,21 @@ export function RevenueChart({ data }: { data: MonthlyRevenue[] }) {
       </div>
 
       {showTable ? (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="animate-fade-in overflow-hidden rounded-xl border border-slate-200">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs font-medium tracking-wide text-slate-500 uppercase">
               <tr>
-                <th className="px-4 py-2">Month</th>
-                <th className="px-4 py-2">Revenue</th>
+                <th className="px-4 py-3">Month</th>
+                <th className="px-4 py-3">Revenue</th>
               </tr>
             </thead>
             <tbody>
               {data.map((d, i) => (
-                <tr key={d.key} className="border-t border-slate-100">
-                  <td className="px-4 py-2 text-slate-700">
+                <tr
+                  key={d.key}
+                  className="border-t border-slate-100 transition-colors duration-150 hover:bg-slate-50"
+                >
+                  <td className="px-4 py-3 text-slate-700">
                     {d.label}
                     {i === currentIndex && (
                       <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
@@ -96,7 +99,7 @@ export function RevenueChart({ data }: { data: MonthlyRevenue[] }) {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-slate-900">
                     {formatMoney(d.amountCents)}
                   </td>
                 </tr>

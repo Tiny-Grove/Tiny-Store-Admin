@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { EmailLayout, EmailTemplate } from "@/lib/supabase/types";
 import { renderEmail } from "@/lib/email-render";
-import { deleteTemplate } from "../actions";
 import { updateTemplate } from "./actions";
+import { DeleteTemplateButton } from "./delete-template-button";
 
 export default async function EditTemplatePage({
   params,
@@ -33,7 +33,7 @@ export default async function EditTemplatePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div>
         <Link
           href="/emails"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-900"
@@ -50,7 +50,8 @@ export default async function EditTemplatePage({
           Emails
         </Link>
 
-        <div className="flex gap-2">
+        <div className="mt-3 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-slate-900">{t.name}</h1>
           <Link
             href={`/emails/${t.id}/send`}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0"
@@ -128,14 +129,9 @@ export default async function EditTemplatePage({
         </div>
       </div>
 
-      <form action={deleteTemplate.bind(null, t.id)} className="pt-4">
-        <button
-          type="submit"
-          className="text-sm text-red-600 hover:underline"
-        >
-          Delete template
-        </button>
-      </form>
+      <div className="border-t border-slate-100 pt-6">
+        <DeleteTemplateButton templateId={t.id} templateName={t.name} />
+      </div>
     </div>
   );
 }

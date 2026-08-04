@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Customer, Industry, Note, Product, Subscription } from "@/lib/supabase/types";
 import { statusBadgeClasses, statusDotClasses } from "@/lib/status-badge";
@@ -15,9 +16,11 @@ import {
   uploadCustomerFavicon,
   uploadCustomerLogo,
 } from "./actions";
+import { restoreCustomer } from "./danger-zone-actions";
 import { NewSubscriptionForm } from "./new-subscription-form";
 import { InventoryList } from "./inventory-list";
 import { RenewalsModal } from "./renewals-modal";
+import { DangerZone } from "./danger-zone";
 import { getRenewalCounts } from "@/lib/renewals";
 import { getSiteUrl } from "@/lib/site-url";
 import { getConnectAccountStatus } from "@/lib/stripe-connect-status";
@@ -66,6 +69,20 @@ export default async function CustomerDetailPage({
     ]);
 
   if (!customer) notFound();
+
+  const currentUserSupabase = await createClient();
+  const {
+    data: { user: currentUser },
+  } = await currentUserSupabase.auth.getUser();
+  let isAdmin = false;
+  if (currentUser?.email) {
+    const { data: adminRow } = await supabase
+      .from("admin_users")
+      .select("role")
+      .eq("email", currentUser.email.toLowerCase())
+      .maybeSingle();
+    isAdmin = adminRow?.role === "admin";
+  }
 
   const inventory = products ?? [];
   const industryOptions = industries ?? [];
@@ -562,12 +579,21 @@ export default async function CustomerDetailPage({
     </div>
   );
 
+  const dangerZoneTab = (
+    <DangerZone
+      customerId={customer.id}
+      customerEmail={customer.email}
+      isArchived={!!customer.deleted_at}
+    />
+  );
+
   const tabs = [
     { id: "subscriptions", label: "Subscriptions", content: subscriptionsTab },
     { id: "store", label: "Store", content: storeTab },
     { id: "branding", label: "Branding", content: brandingTab },
     { id: "payments", label: "Payments", content: paymentsTab },
     { id: "inventory", label: "Inventory", content: inventoryTab },
+    ...(isAdmin ? [{ id: "danger", label: "Danger zone", content: dangerZoneTab }] : []),
   ];
 
   return (
@@ -587,6 +613,32 @@ export default async function CustomerDetailPage({
         </svg>
         Customers
       </Link>
+
+      {customer.deleted_at && (
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800">
+            This customer was archived on{" "}
+            {new Date(customer.deleted_at).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
+            . It&apos;s hidden from the customer list and its storefront is
+            offline.
+          </p>
+          {isAdmin && (
+            <form action={restoreCustomer}>
+              <input type="hidden" name="customerId" value={customer.id} />
+              <button
+                type="submit"
+                className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100"
+              >
+                Restore
+              </button>
+            </form>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-700 text-lg font-semibold text-white shadow-md shadow-brand-700/25">

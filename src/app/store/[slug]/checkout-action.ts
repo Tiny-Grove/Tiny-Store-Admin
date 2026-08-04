@@ -16,11 +16,15 @@ export async function createStorefrontCheckout(slug: string, items: CartItem[]):
   const admin = createAdminClient();
   const { data: customer } = await admin
     .from("customers")
-    .select("id, stripe_connect_account_id, stripe_connect_charges_enabled")
+    .select("id, stripe_connect_account_id, stripe_connect_charges_enabled, deleted_at")
     .eq("slug", slug)
     .maybeSingle();
 
-  if (!customer?.stripe_connect_account_id || !customer.stripe_connect_charges_enabled) {
+  if (
+    !customer?.stripe_connect_account_id ||
+    !customer.stripe_connect_charges_enabled ||
+    customer.deleted_at
+  ) {
     return { error: "This store isn't able to accept payments right now." };
   }
 

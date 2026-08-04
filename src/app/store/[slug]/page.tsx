@@ -24,7 +24,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const merchant = await getMerchant(slug);
-  if (!merchant) return {};
+  if (!merchant || merchant.deleted_at) return {};
 
   return {
     title: merchant.company ?? "Store",
@@ -41,7 +41,7 @@ export default async function StorefrontPage({
   const admin = createAdminClient();
 
   const merchant = await getMerchant(slug);
-  if (!merchant || !merchant.stripe_connect_charges_enabled) {
+  if (!merchant || !merchant.stripe_connect_charges_enabled || merchant.deleted_at) {
     notFound();
   }
 

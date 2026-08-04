@@ -18,7 +18,10 @@ async function getStats() {
     unsubscribed,
     churned,
   ] = await Promise.all([
-    supabase.from("customers").select("*", { count: "exact", head: true }),
+    supabase
+      .from("customers")
+      .select("*", { count: "exact", head: true })
+      .is("deleted_at", null),
     supabase
       .from("subscriptions")
       .select("*", { count: "exact", head: true })
@@ -34,7 +37,8 @@ async function getStats() {
     supabase
       .from("customers")
       .select("*", { count: "exact", head: true })
-      .eq("email_opt_out", true),
+      .eq("email_opt_out", true)
+      .is("deleted_at", null),
     supabase
       .from("subscription_events")
       .select("*", { count: "exact", head: true })
@@ -56,7 +60,8 @@ async function getCountryCounts(): Promise<CountryCount[]> {
   const { data } = await supabase
     .from("customers")
     .select("country")
-    .not("country", "is", null);
+    .not("country", "is", null)
+    .is("deleted_at", null);
 
   const counts = new Map<string, number>();
   for (const row of data ?? []) {
