@@ -54,6 +54,14 @@ export async function replyToTicket(formData: FormData) {
     });
   }
 
+  await admin.from("notifications").insert({
+    customer_id: ticket.customer_id,
+    type: "ticket_reply",
+    title: `Re: ${ticket.subject}`,
+    body,
+    data: { ticketId },
+  });
+
   revalidatePath(`/support/${ticketId}`);
   revalidatePath("/support");
 }

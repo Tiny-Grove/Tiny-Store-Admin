@@ -26,6 +26,7 @@ export interface Customer {
   stripe_connect_charges_enabled: boolean;
   currency: string;
   expo_push_token: string | null;
+  receipt_footer_text: string | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -170,5 +171,20 @@ export interface SupportTicketMessage {
   author_type: TicketAuthor;
   author_email: string;
   body: string;
+  created_at: string;
+}
+
+// Mobile app's in-app notification inbox — rows are only ever written by
+// this admin's service-role client (see 20260809140000_receipt_footer_and_notifications.sql).
+export type NotificationType = "ticket_reply" | "new_order";
+
+export interface Notification {
+  id: string;
+  customer_id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  data: Record<string, unknown> | null;
+  read_at: string | null;
   created_at: string;
 }

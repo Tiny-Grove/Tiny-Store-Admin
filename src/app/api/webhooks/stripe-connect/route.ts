@@ -95,6 +95,9 @@ async function recordStorefrontSale(
   const saleId = randomUUID();
   const rows: Record<string, unknown>[] = [];
   const quantityByProduct = new Map<string, number>();
+  let itemCount = 0;
+  let totalCents = 0;
+  let currency = "gbp";
 
   for (const item of lineItems.data) {
     const productRef = item.price?.product;
@@ -121,6 +124,9 @@ async function recordStorefrontSale(
       stripe_checkout_session_id: session.id,
     });
     quantityByProduct.set(product.id, (quantityByProduct.get(product.id) ?? 0) + quantity);
+    itemCount += quantity;
+    totalCents += item.amount_total ?? 0;
+    currency = product.currency;
   }
   if (rows.length === 0) return;
 
@@ -132,4 +138,12 @@ async function recordStorefrontSale(
     const newStock = Math.max(0, product.stock_count - quantity);
     await admin.from("products").update({ stock_count: newStock }).eq("id", productId);
   }
+
+  await admin.from("notifications").insert({
+    customer_id: customerId,
+    type: "new_order",
+    title: "New order received!",
+    body: `${itemCount} item${itemCount === 1 ? "" : "s"} · ${(totalCents / 100).toFixed(2)} ${currency}`,
+    data: { saleId },
+  });
 }
