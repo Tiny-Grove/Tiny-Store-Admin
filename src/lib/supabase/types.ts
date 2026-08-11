@@ -27,6 +27,12 @@ export interface Customer {
   currency: string;
   expo_push_token: string | null;
   receipt_footer_text: string | null;
+  storefront_banner_url: string | null;
+  storefront_about: string | null;
+  storefront_whatsapp: string | null;
+  storefront_instagram_url: string | null;
+  storefront_facebook_url: string | null;
+  storefront_website_url: string | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -49,6 +55,7 @@ export interface Product {
   stock_count: number;
   product_code: string;
   category_id: string | null;
+  is_featured: boolean;
   created_at: string;
   updated_at: string;
 }

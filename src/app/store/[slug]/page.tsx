@@ -50,6 +50,7 @@ export default async function StorefrontPage({
     .select("*")
     .eq("customer_id", merchant.id)
     .gt("stock_count", 0)
+    .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false });
 
   const products = (productsData ?? []) as Product[];
@@ -66,11 +67,25 @@ export default async function StorefrontPage({
       }
       className="flex min-h-screen flex-col bg-slate-50"
     >
+      {merchant.storefront_banner_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={merchant.storefront_banner_url}
+          alt=""
+          className="h-40 w-full object-cover sm:h-64"
+        />
+      )}
+
       <StorefrontCart
         slug={slug}
         merchantName={merchant.company ?? "Store"}
         logoUrl={merchant.logo_url}
         slogan={merchant.slogan}
+        about={merchant.storefront_about}
+        whatsapp={merchant.storefront_whatsapp}
+        instagramUrl={merchant.storefront_instagram_url}
+        facebookUrl={merchant.storefront_facebook_url}
+        websiteUrl={merchant.storefront_website_url}
         products={products.map((p) => ({
           id: p.id,
           name: p.name,

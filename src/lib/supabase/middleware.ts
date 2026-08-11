@@ -14,6 +14,7 @@ const FULLY_PUBLIC_PATHS = [
   "/store",
   "/api/webhooks/stripe-connect",
   "/api/webhooks/stripe",
+  "/connect/return",
 ];
 
 // Paths in the admin area reachable without an admin session.

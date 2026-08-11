@@ -17,17 +17,33 @@ function formatPrice(cents: number, currency: string) {
   return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
 }
 
+// Matches the mobile app's own convention (whatsappCustomer in
+// CustomerListScreen.tsx) — strip everything but digits, then wa.me.
+function whatsappLink(phone: string) {
+  return `https://wa.me/${phone.replace(/[^\d]/g, "")}`;
+}
+
 export default function StorefrontCart({
   slug,
   merchantName,
   logoUrl,
   slogan,
+  about,
+  whatsapp,
+  instagramUrl,
+  facebookUrl,
+  websiteUrl,
   products,
 }: {
   slug: string;
   merchantName: string;
   logoUrl: string | null;
   slogan: string | null;
+  about: string | null;
+  whatsapp: string | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
+  websiteUrl: string | null;
   products: StorefrontProduct[];
 }) {
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -171,6 +187,93 @@ export default function StorefrontCart({
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        {(about || whatsapp || instagramUrl || facebookUrl || websiteUrl) && (
+          <div className="mb-6">
+            {about && (
+              <p className="max-w-2xl text-sm text-slate-600">{about}</p>
+            )}
+            {(whatsapp || instagramUrl || facebookUrl || websiteUrl) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {whatsapp && (
+                  <a
+                    href={whatsappLink(whatsapp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                      <path
+                        d="M10 3a7 7 0 0 0-6 10.6L3 17l3.5-1a7 7 0 1 0 3.5-13Z"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M7.3 8.3c.2 1.7 2.2 3.7 3.9 3.9.8.1 1-.5 1-1"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    WhatsApp
+                  </a>
+                )}
+                {instagramUrl && (
+                  <a
+                    href={instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                      <rect x="3" y="3" width="14" height="14" rx="4" stroke="currentColor" strokeWidth="1.4" />
+                      <circle cx="10" cy="10" r="3.2" stroke="currentColor" strokeWidth="1.4" />
+                      <circle cx="14.2" cy="5.8" r="0.9" fill="currentColor" />
+                    </svg>
+                    Instagram
+                  </a>
+                )}
+                {facebookUrl && (
+                  <a
+                    href={facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4" />
+                      <path
+                        d="M11.5 7.5h-1a1 1 0 0 0-1 1V10H8v1.5h1.5V16H11v-4.5h1.3l.2-1.5H11V8.7c0-.3.2-.5.5-.5h1V6.7a10 10 0 0 0-1-.2Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    Facebook
+                  </a>
+                )}
+                {websiteUrl && (
+                  <a
+                    href={websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4" />
+                      <path
+                        d="M3 10h14M10 3c1.8 2 2.8 4.5 2.8 7s-1 5-2.8 7c-1.8-2-2.8-4.5-2.8-7s1-5 2.8-7Z"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                      />
+                    </svg>
+                    Website
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {error && (
           <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
             {error}
