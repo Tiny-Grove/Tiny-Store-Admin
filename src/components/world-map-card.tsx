@@ -22,7 +22,7 @@ const NUMERIC_BY_CODE = new Map(COUNTRIES.map((c) => [c.code, c.numeric]));
 // country's share of the max count grows.
 function colorForRatio(ratio: number) {
   const from = [226, 232, 240];
-  const to = [87, 142, 48];
+  const to = [19, 150, 23];
   const [r, g, b] = from.map((f, i) => Math.round(f + (to[i] - f) * ratio));
   return `rgb(${r}, ${g}, ${b})`;
 }

@@ -9,7 +9,7 @@ const PADDING = { top: 28, right: 12, bottom: 32, left: 46 };
 const MAX_BAR_WIDTH = 24;
 const BAR_GAP = 4;
 
-const ACCENT = "#437023"; // current month — brand-700, this app's brand accent
+const ACCENT = "#0d7711"; // current month — brand-700, this app's brand accent
 const MUTED = "#e2e8f0"; // past months — de-emphasis gray (slate-200)
 const GRID = "#e1e0d9";
 const AXIS_TEXT = "#898781";

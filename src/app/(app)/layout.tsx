@@ -27,12 +27,8 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen bg-slate-50">
       <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
-        <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-5">
-          <Logo className="h-9 w-auto shrink-0" />
-          <div className="leading-tight">
-            <p className="text-base font-semibold text-slate-900">Tiny Store</p>
-            <p className="text-xs font-medium text-slate-400">Admin</p>
-          </div>
+        <div className="flex items-center justify-center border-b border-slate-100 px-4 py-6">
+          <Logo className="h-20 w-auto" />
         </div>
         <div className="flex-1 overflow-y-auto">
           <Sidebar isAdmin={isAdmin} />

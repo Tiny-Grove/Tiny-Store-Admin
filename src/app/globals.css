@@ -3,18 +3,21 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --accent: #437023;
+  --accent: #0d7711;
   --accent-foreground: #ffffff;
 
-  /* Brand green, sampled from the logo (bag #578e30 / handle #122d28). */
-  --brand-50: #f5faf2;
-  --brand-100: #e6f2de;
-  --brand-200: #c8e2b6;
-  --brand-300: #a8d08b;
-  --brand-600: #578e30;
-  --brand-700: #437023;
-  --brand-800: #315318;
-  --brand-900: #213612;
+  /* Brand green, matched to the Bizzloc logo's vivid green gradient
+     (~#69d601 highlight to ~#037014 shadow, hue ~122°) — saturation is
+     toned down from the logo's neon ~95% to ~80% so it reads as a UI
+     color rather than a glow effect across large surfaces. */
+  --brand-50: #f1fbf1;
+  --brand-100: #dbf5dc;
+  --brand-200: #acecae;
+  --brand-300: #78e27c;
+  --brand-600: #139617;
+  --brand-700: #0d7711;
+  --brand-800: #09580b;
+  --brand-900: #073c08;
 }
 
 @theme inline {

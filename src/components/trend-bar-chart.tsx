@@ -34,7 +34,7 @@ function topRoundedRectPath(x: number, y: number, width: number, height: number,
 
 export function TrendBarChart({
   data,
-  color = "#437023",
+  color = "#0d7711",
   format = "count",
 }: {
   data: { key: string; label: string; value: number }[];
