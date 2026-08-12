@@ -68,6 +68,16 @@ async function getStorefrontHostname(): Promise<string | null> {
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  // TEMP: production diagnostic only, reverted before done.
+  if (request.nextUrl.searchParams.get("__debughost") === "1") {
+    return NextResponse.json({
+      hostHeader: request.headers.get("host"),
+      xForwardedHost: request.headers.get("x-forwarded-host"),
+      nextUrlHostname: request.nextUrl.hostname,
+      storefrontHostname: await getStorefrontHostname(),
+    });
+  }
+
   // Host-based domain split: on the dedicated storefront domain, only
   // storefront + API/webhook routes exist — everything else (dashboard,
   // login, customer records, etc.) 404s so the admin panel is never
