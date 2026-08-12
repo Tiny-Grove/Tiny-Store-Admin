@@ -86,41 +86,12 @@ export default async function StorefrontPage({
       }
       className="flex min-h-screen flex-col bg-slate-50"
     >
-      <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6 sm:pt-6">
-        <div
-          className="relative flex min-h-[220px] items-end overflow-hidden rounded-3xl sm:min-h-[320px]"
-          style={
-            merchant.storefront_banner_url
-              ? undefined
-              : { background: `linear-gradient(135deg, var(--brand-secondary), var(--brand-primary))` }
-          }
-        >
-          {merchant.storefront_banner_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={merchant.storefront_banner_url}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          <div className="relative z-10 p-6 sm:p-10">
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
-              {merchant.company ?? "Store"}
-            </h1>
-            {merchant.slogan && (
-              <p className="mt-2 max-w-xl text-sm text-white/85 sm:text-base">
-                {merchant.slogan}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
       <StorefrontCart
         slug={slug}
         merchantName={merchant.company ?? "Store"}
         logoUrl={merchant.logo_url}
+        slogan={merchant.slogan}
+        bannerUrl={merchant.storefront_banner_url}
         about={merchant.storefront_about}
         whatsapp={merchant.storefront_whatsapp}
         instagramUrl={merchant.storefront_instagram_url}
@@ -139,12 +110,6 @@ export default async function StorefrontPage({
           category: p.category_id ? (categoryNameById.get(p.category_id) ?? null) : null,
         }))}
       />
-
-      <footer className="border-t border-slate-200 py-6">
-        <p className="text-center text-xs text-slate-400">
-          Powered by Tiny Store
-        </p>
-      </footer>
     </div>
   );
 }

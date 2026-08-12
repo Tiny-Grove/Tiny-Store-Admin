@@ -36,6 +36,8 @@ export default function StorefrontCart({
   slug,
   merchantName,
   logoUrl,
+  slogan,
+  bannerUrl,
   about,
   whatsapp,
   instagramUrl,
@@ -47,6 +49,8 @@ export default function StorefrontCart({
   slug: string;
   merchantName: string;
   logoUrl: string | null;
+  slogan: string | null;
+  bannerUrl: string | null;
   about: string | null;
   whatsapp: string | null;
   instagramUrl: string | null;
@@ -140,6 +144,13 @@ export default function StorefrontCart({
     });
   };
 
+  const socialLinks = [
+    whatsapp && { key: "whatsapp", href: whatsappLink(whatsapp), label: "WhatsApp" },
+    instagramUrl && { key: "instagram", href: instagramUrl, label: "Instagram" },
+    facebookUrl && { key: "facebook", href: facebookUrl, label: "Facebook" },
+    websiteUrl && { key: "website", href: websiteUrl, label: "Website" },
+  ].filter((link): link is { key: string; href: string; label: string } => Boolean(link));
+
   return (
     <>
       <header
@@ -205,102 +216,63 @@ export default function StorefrontCart({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
-        {(about || whatsapp || instagramUrl || facebookUrl || websiteUrl) && (
-          <div className="mb-6">
-            {about && (
-              <p className="max-w-2xl text-sm text-slate-600">{about}</p>
-            )}
-            {(whatsapp || instagramUrl || facebookUrl || websiteUrl) && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {whatsapp && (
-                  <a
-                    href={whatsappLink(whatsapp)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
-                  >
-                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
-                      <path
-                        d="M10 3a7 7 0 0 0-6 10.6L3 17l3.5-1a7 7 0 1 0 3.5-13Z"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M7.3 8.3c.2 1.7 2.2 3.7 3.9 3.9.8.1 1-.5 1-1"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    WhatsApp
-                  </a>
-                )}
-                {instagramUrl && (
-                  <a
-                    href={instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
-                  >
-                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
-                      <rect x="3" y="3" width="14" height="14" rx="4" stroke="currentColor" strokeWidth="1.4" />
-                      <circle cx="10" cy="10" r="3.2" stroke="currentColor" strokeWidth="1.4" />
-                      <circle cx="14.2" cy="5.8" r="0.9" fill="currentColor" />
-                    </svg>
-                    Instagram
-                  </a>
-                )}
-                {facebookUrl && (
-                  <a
-                    href={facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
-                  >
-                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
-                      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4" />
-                      <path
-                        d="M11.5 7.5h-1a1 1 0 0 0-1 1V10H8v1.5h1.5V16H11v-4.5h1.3l.2-1.5H11V8.7c0-.3.2-.5.5-.5h1V6.7a10 10 0 0 0-1-.2Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                    Facebook
-                  </a>
-                )}
-                {websiteUrl && (
-                  <a
-                    href={websiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
-                  >
-                    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
-                      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4" />
-                      <path
-                        d="M3 10h14M10 3c1.8 2 2.8 4.5 2.8 7s-1 5-2.8 7c-1.8-2-2.8-4.5-2.8-7s1-5 2.8-7Z"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
-                      />
-                    </svg>
-                    Website
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
+      <section
+        className="relative flex min-h-65 items-end overflow-hidden sm:min-h-100 lg:min-h-115"
+        style={
+          bannerUrl
+            ? undefined
+            : { background: "linear-gradient(135deg, var(--brand-secondary), var(--brand-primary))" }
+        }
+      >
+        {bannerUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         )}
+        <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/15 to-transparent" />
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+            {merchantName}
+          </h2>
+          {slogan && (
+            <p className="mt-2 max-w-xl text-sm text-white/85 sm:text-base">{slogan}</p>
+          )}
+          {products.length > 0 && (
+            <a
+              href="#products"
+              className="mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "var(--brand-primary)" }}
+            >
+              Shop now
+              <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                <path
+                  d="m5 8 5 5 5-5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          )}
+        </div>
+      </section>
+
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
+        <div id="products" className="scroll-mt-24">
+          <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">All Products</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {products.length} product{products.length === 1 ? "" : "s"} available
+          </p>
+        </div>
 
         {error && (
-          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          <p className="mt-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
             {error}
           </p>
         )}
 
         {products.length > 0 && (
-          <div className="mb-6 flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+          <div className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-white p-3">
             <label className="relative flex min-w-50 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3">
               <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-slate-400">
                 <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
@@ -347,7 +319,7 @@ export default function StorefrontCart({
         )}
 
         {filteredProducts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+          <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
             <p className="text-sm text-slate-500">
               {products.length === 0
                 ? "No products available right now — check back soon."
@@ -365,7 +337,7 @@ export default function StorefrontCart({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {visibleProducts.map((product) => {
                 const quantity = cart[product.id] ?? 0;
                 const atStockLimit = quantity >= product.stockCount;
@@ -509,6 +481,51 @@ export default function StorefrontCart({
           </>
         )}
       </main>
+
+      <footer className="mt-auto text-white" style={{ backgroundColor: "var(--brand-secondary)" }}>
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+          <div className="flex items-center gap-3">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={merchantName}
+                className="h-11 w-11 shrink-0 rounded-lg border border-white/20 bg-white object-contain p-1"
+              />
+            ) : (
+              <div
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-lg font-semibold text-white"
+                style={{ backgroundColor: "var(--brand-primary)" }}
+              >
+                {merchantName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="text-lg font-semibold">{merchantName}</span>
+          </div>
+
+          {about && <p className="mt-4 max-w-xl text-sm text-white/75">{about}</p>}
+
+          {socialLinks.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.key}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90 transition-colors hover:bg-white/20"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-8 border-t border-white/15 pt-5 text-center text-xs text-white/50">
+            Powered by Tiny Store
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
