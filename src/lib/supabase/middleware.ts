@@ -26,7 +26,64 @@ const ADMIN_PUBLIC_PATHS = ["/login", "/auth/callback"];
 // control (Settings, which now manages admin_users).
 const ADMIN_ONLY_PATHS = ["/settings", "/finance", "/analytics"];
 
+// When a request arrives on the dedicated storefront domain (site_settings.
+// site_url), only these customer-facing paths are servable — everything
+// else 404s so the admin panel is never reachable from that host. API/
+// webhook routes are server-to-server and stay reachable everywhere, so
+// they're checked separately rather than listed here.
+const STOREFRONT_DOMAIN_ALLOWED_PATHS = ["/store", "/connect/return"];
+
+// The storefront hostname rarely changes, so it's cached in module scope
+// (persists across warm invocations of this edge function) rather than
+// queried on every single request on top of the existing auth lookup.
+let storefrontHostnameCache: { hostname: string | null; expiresAt: number } | null = null;
+const STOREFRONT_HOSTNAME_CACHE_TTL_MS = 60_000;
+
+async function getStorefrontHostname(): Promise<string | null> {
+  if (storefrontHostnameCache && storefrontHostnameCache.expiresAt > Date.now()) {
+    return storefrontHostnameCache.hostname;
+  }
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("site_settings")
+    .select("site_url")
+    .eq("id", 1)
+    .maybeSingle<{ site_url: string | null }>();
+
+  const raw = data?.site_url?.trim() || process.env.PUBLIC_SITE_URL || null;
+  let hostname: string | null = null;
+  if (raw) {
+    try {
+      hostname = new URL(raw).hostname.toLowerCase();
+    } catch {
+      hostname = null;
+    }
+  }
+
+  storefrontHostnameCache = { hostname, expiresAt: Date.now() + STOREFRONT_HOSTNAME_CACHE_TTL_MS };
+  return hostname;
+}
+
 export async function updateSession(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+
+  // Host-based domain split: on the dedicated storefront domain, only
+  // storefront + API/webhook routes exist — everything else (dashboard,
+  // login, customer records, etc.) 404s so the admin panel is never
+  // reachable from a customer-facing host. Checked before auth so blocked
+  // requests skip the Supabase session lookup entirely.
+  const requestHostname = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+  const storefrontHostname = await getStorefrontHostname();
+  if (storefrontHostname && requestHostname === storefrontHostname) {
+    const isStorefrontAllowed =
+      STOREFRONT_DOMAIN_ALLOWED_PATHS.some((p) => path.startsWith(p)) ||
+      path.startsWith("/api/");
+    if (!isStorefrontAllowed) {
+      return NextResponse.rewrite(new URL("/__not-found__", request.url));
+    }
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -55,8 +112,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const path = request.nextUrl.pathname;
 
   if (FULLY_PUBLIC_PATHS.some((p) => path.startsWith(p))) {
     return response;
