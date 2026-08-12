@@ -21,7 +21,7 @@ export function getMailgunDomain(): string {
 }
 
 export function getMailgunFrom(): string {
-  return process.env.MAILGUN_FROM_EMAIL || `Tiny Store <postmaster@${getMailgunDomain()}>`;
+  return process.env.MAILGUN_FROM_EMAIL || `Bizzlet <postmaster@${getMailgunDomain()}>`;
 }
 
 // Server-only Mailgun client — never import this from client components.

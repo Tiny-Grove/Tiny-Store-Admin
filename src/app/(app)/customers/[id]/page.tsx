@@ -267,8 +267,8 @@ export default async function CustomerDetailPage({
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
             />
             <p className="mt-1 text-xs text-slate-400">
-              Shown under the store name on the public storefront, in place
-              of the old &quot;Powered by Tiny Store&quot; line.
+              Shown under the store name on the public storefront, alongside
+              the &quot;Created with ❤️ by Bizzlet&quot; footer line.
             </p>
           </div>
 

@@ -28,10 +28,10 @@ export default async function PublicTicketPage({
       <div className="mx-auto w-full max-w-xl">
         <div className="mb-6 flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-semibold text-white shadow-md shadow-brand-600/25">
-            T
+            B
           </div>
           <span className="text-base font-semibold text-slate-900">
-            Tiny Store Support
+            Bizzlet Support
           </span>
         </div>
 
@@ -78,7 +78,7 @@ export default async function PublicTicketPage({
                   >
                     <p className="whitespace-pre-wrap text-slate-800">{m.body}</p>
                     <p className="mt-2 text-xs text-slate-400">
-                      {isAdmin ? "Tiny Store Support" : "You"} ·{" "}
+                      {isAdmin ? "Bizzlet Support" : "You"} ·{" "}
                       {new Date(m.created_at).toLocaleString()}
                     </p>
                   </div>

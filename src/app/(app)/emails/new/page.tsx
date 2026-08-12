@@ -23,7 +23,7 @@ export default function NewTemplatePage() {
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">New template</h1>
         <p className="mt-1 text-sm text-slate-500">
-          The fixed Tiny Store header and global footer are added
+          The fixed Bizzlet header and global footer are added
           automatically — just write the body.
         </p>
       </div>
@@ -48,7 +48,7 @@ export default function NewTemplatePage() {
           <input
             name="subject"
             required
-            placeholder="e.g. Welcome to Tiny Store, %recipient.name%"
+            placeholder="e.g. Welcome to Bizzlet, %recipient.name%"
             className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
           />
         </div>

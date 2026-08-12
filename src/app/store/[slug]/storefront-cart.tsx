@@ -522,7 +522,7 @@ export default function StorefrontCart({
           )}
 
           <div className="mt-8 border-t border-white/15 pt-5 text-center text-xs text-white/50">
-            Powered by Tiny Store
+            Created with ❤️ by Bizzlet
           </div>
         </div>
       </footer>

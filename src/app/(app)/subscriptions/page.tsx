@@ -30,7 +30,7 @@ export default async function SubscriptionsPage() {
           Subscriptions
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Choose which Stripe plans Tiny Store Admin should track.
+          Choose which Stripe plans Bizzlet Admin should track.
         </p>
       </div>
 

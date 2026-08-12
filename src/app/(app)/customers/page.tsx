@@ -60,7 +60,7 @@ export default async function CustomersPage({
           <p className="text-sm text-slate-500">
             {showArchived
               ? "No archived customers."
-              : "No customers yet — once connected to the Tiny Store database, they'll show up here."}
+              : "No customers yet — once connected to the Bizzlet database, they'll show up here."}
           </p>
         </div>
       ) : (

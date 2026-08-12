@@ -191,7 +191,7 @@ export default async function SettingsPage() {
                 name="site_url"
                 type="url"
                 defaultValue={configuredSiteUrl ?? ""}
-                placeholder="https://app.tinystore.example"
+                placeholder="https://store.bizzlet.example"
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               />
             </div>

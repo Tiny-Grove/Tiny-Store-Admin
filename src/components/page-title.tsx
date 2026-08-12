@@ -9,7 +9,7 @@ export function PageTitle() {
 
   return (
     <span className="font-medium text-slate-900">
-      {current?.label ?? "Tiny Store Admin"}
+      {current?.label ?? "Bizzlet Admin"}
     </span>
   );
 }

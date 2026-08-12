@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tiny Store Admin",
-  description: "Internal admin CRM for Tiny Store",
+  title: "Bizzlet Admin",
+  description: "Internal admin CRM for Bizzlet",
 };
 
 export default function RootLayout({
