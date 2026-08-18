@@ -23,7 +23,7 @@ export function SendForm({ templateId }: { templateId: string }) {
         <h2 className="font-medium text-slate-900">Send complete</h2>
         <p className="mt-2 text-sm text-slate-600">
           {state.sentCount} of {state.matchedCount} recipients handed off to
-          Mailgun successfully
+          Mailtrap successfully
           {!!state.failedCount &&
             ` — ${state.failedCount} failed (see error details in Emails history).`}
         </p>

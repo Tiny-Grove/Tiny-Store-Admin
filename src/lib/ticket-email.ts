@@ -1,5 +1,5 @@
 import "server-only";
-import { getMailgunClient, getMailgunDomain, getMailgunFrom, isMailgunConfigured } from "@/lib/mailgun";
+import { getMailFrom, getTransactionalClient, isMailtrapConfigured } from "@/lib/mailtrap";
 import { renderEmail } from "@/lib/email-render";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { EmailLayout } from "@/lib/supabase/types";
@@ -26,7 +26,7 @@ export async function sendTicketReplyEmail({
   replyBody: string;
   ticketId: string;
 }) {
-  if (!(await isMailgunConfigured())) return { sent: false, error: "Mailgun not configured" };
+  if (!(await isMailtrapConfigured())) return { sent: false, error: "Mailtrap not configured" };
 
   const appUrl = process.env.APP_URL;
   if (!appUrl) return { sent: false, error: "APP_URL not set" };
@@ -55,10 +55,12 @@ export async function sendTicketReplyEmail({
   });
 
   try {
-    const mg = getMailgunClient();
-    await mg.messages.create(await getMailgunDomain(), {
-      from: await getMailgunFrom(),
-      to: [to],
+    const client = getTransactionalClient();
+    const from = await getMailFrom();
+    if (!from) return { sent: false, error: "Mailtrap From address not set" };
+    await client.send({
+      from,
+      to: [{ email: to }],
       subject,
       html,
     });

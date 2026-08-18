@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isMailgunConfigured } from "@/lib/mailgun";
+import { isMailtrapConfigured } from "@/lib/mailtrap";
 import type { EmailBatch, EmailLayout, EmailTemplate } from "@/lib/supabase/types";
 import { saveFooter, saveHeader } from "./actions";
 
 export default async function EmailsPage() {
   const admin = createAdminClient();
 
-  const [{ data: templates }, { data: layout }, { data: batches }, mailgunConfigured] =
+  const [{ data: templates }, { data: layout }, { data: batches }, mailtrapConfigured] =
     await Promise.all([
       admin
         .from("email_templates")
@@ -19,7 +19,7 @@ export default async function EmailsPage() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(10),
-      isMailgunConfigured(),
+      isMailtrapConfigured(),
     ]);
 
   const templateList = (templates ?? []) as EmailTemplate[];
@@ -32,7 +32,7 @@ export default async function EmailsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Emails</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Templates you can send to customers via Mailgun.
+            Templates you can send to customers via Mailtrap.
           </p>
         </div>
         <Link
@@ -43,9 +43,9 @@ export default async function EmailsPage() {
         </Link>
       </div>
 
-      {!mailgunConfigured && (
+      {!mailtrapConfigured && (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Mailgun isn&apos;t connected yet.{" "}
+          Mailtrap isn&apos;t connected yet.{" "}
           <Link href="/settings" className="underline">
             Set it up in Settings
           </Link>{" "}

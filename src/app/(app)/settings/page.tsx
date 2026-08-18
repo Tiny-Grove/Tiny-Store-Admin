@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getStripe, getStripeMode, isStripeConfigured } from "@/lib/stripe";
-import { getMailgunClient, getMailgunDomain, isMailgunConfigured } from "@/lib/mailgun";
+import { getTransactionalClient, isMailtrapConfigured } from "@/lib/mailtrap";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AdminUser, Industry, SiteSettings } from "@/lib/supabase/types";
@@ -9,7 +9,7 @@ import {
   addIndustry,
   toggleAdminUserActive,
   updateAdminUserRole,
-  updateMailgunSettings,
+  updateMailtrapSettings,
   updateSiteUrl,
 } from "./actions";
 import { RoleSelect } from "./role-select";
@@ -31,18 +31,20 @@ async function getStripeStatus() {
   }
 }
 
-async function getMailgunStatus() {
-  if (!(await isMailgunConfigured())) {
+async function getMailtrapStatus() {
+  if (!(await isMailtrapConfigured())) {
     return { connected: false, error: null as string | null };
   }
 
   try {
-    await getMailgunClient().domains.get(await getMailgunDomain());
+    // No domain-specific check available without also asking for an
+    // account ID, so this just validates the API token itself.
+    await getTransactionalClient().general.accounts.getAllAccounts();
     return { connected: true, error: null as string | null };
   } catch (err) {
     return {
       connected: false,
-      error: err instanceof Error ? err.message : "Couldn't reach Mailgun",
+      error: err instanceof Error ? err.message : "Couldn't reach Mailtrap",
     };
   }
 }
@@ -53,10 +55,10 @@ export default async function SettingsPage() {
     data: { user: currentUser },
   } = await supabase.auth.getUser();
 
-  const [stripeStatus, mailgunStatus, { data: industries }, { data: adminUsers }, { data: siteSettingsRow }] =
+  const [stripeStatus, mailtrapStatus, { data: industries }, { data: adminUsers }, { data: siteSettingsRow }] =
     await Promise.all([
       getStripeStatus(),
-      getMailgunStatus(),
+      getMailtrapStatus(),
       createAdminClient().from("industries").select("*").order("name").returns<Industry[]>(),
       createAdminClient()
         .from("admin_users")
@@ -75,10 +77,8 @@ export default async function SettingsPage() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "Not configured";
   const configuredSiteUrl = siteSettingsRow?.site_url ?? null;
   const siteUrl = configuredSiteUrl || process.env.PUBLIC_SITE_URL || null;
-  const configuredMailgunDomain = siteSettingsRow?.mailgun_domain ?? null;
-  const configuredMailgunFrom = siteSettingsRow?.mailgun_from_email ?? null;
-  const mailgunDomain = configuredMailgunDomain || process.env.MAILGUN_DOMAIN || null;
-  const mailgunFrom = configuredMailgunFrom || process.env.MAILGUN_FROM_EMAIL || null;
+  const configuredMailFrom = siteSettingsRow?.mail_from_email ?? null;
+  const mailFrom = configuredMailFrom || process.env.MAIL_FROM_EMAIL || null;
 
   return (
     <div>
@@ -213,44 +213,33 @@ export default async function SettingsPage() {
         >
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="font-medium text-slate-900">Mailgun</h2>
+              <h2 className="font-medium text-slate-900">Mailtrap</h2>
               <p className="mt-1 text-sm text-slate-500">
                 Powers the Emails section.
               </p>
             </div>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                mailgunStatus.connected
+                mailtrapStatus.connected
                   ? "bg-green-50 text-green-700"
                   : "bg-red-50 text-red-700"
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  mailgunStatus.connected ? "bg-green-500" : "bg-red-500"
+                  mailtrapStatus.connected ? "bg-green-500" : "bg-red-500"
                 }`}
               />
-              {mailgunStatus.connected ? "Connected" : "Not connected"}
+              {mailtrapStatus.connected ? "Connected" : "Not connected"}
             </span>
           </div>
 
-          <dl className="mt-4 grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <dt className="text-slate-500">Sending domain</dt>
-              <dd className="mt-0.5 truncate font-medium text-slate-900">
-                {mailgunDomain ?? "Not set"}
-                {!configuredMailgunDomain && process.env.MAILGUN_DOMAIN && (
-                  <span className="ml-1.5 text-xs font-normal text-slate-400">
-                    (env var)
-                  </span>
-                )}
-              </dd>
-            </div>
+          <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
             <div>
               <dt className="text-slate-500">From address</dt>
               <dd className="mt-0.5 truncate font-medium text-slate-900">
-                {mailgunFrom ?? `Bizzlet <postmaster@${mailgunDomain ?? "…"}>`}
-                {!configuredMailgunFrom && process.env.MAILGUN_FROM_EMAIL && (
+                {mailFrom ?? "Not set"}
+                {!configuredMailFrom && process.env.MAIL_FROM_EMAIL && (
                   <span className="ml-1.5 text-xs font-normal text-slate-400">
                     (env var)
                   </span>
@@ -270,35 +259,32 @@ export default async function SettingsPage() {
             </div>
           </dl>
 
-          {!mailgunStatus.connected && (
+          {!mailtrapStatus.connected && (
             <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
-              {mailgunStatus.error ??
-                "Add MAILGUN_API_KEY to your environment variables and set a sending domain below to connect Mailgun."}
+              {mailtrapStatus.error ??
+                "Add MAILTRAP_API_TOKEN to your environment variables and set a From address below to connect Mailtrap."}
             </p>
           )}
 
-          <form action={updateMailgunSettings} className="mt-4 flex flex-wrap items-end gap-2">
-            <div className="min-w-48 flex-1">
-              <label className="mb-1 block text-xs font-medium text-slate-700">
-                Sending domain
-              </label>
-              <input
-                name="mailgun_domain"
-                defaultValue={configuredMailgunDomain ?? ""}
-                placeholder="mg.bizzlet.com"
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-              />
-            </div>
-            <div className="min-w-48 flex-1">
+          <form action={updateMailtrapSettings} className="mt-4 flex flex-wrap items-end gap-2">
+            <div className="min-w-64 flex-1">
               <label className="mb-1 block text-xs font-medium text-slate-700">
                 From address
               </label>
               <input
-                name="mailgun_from_email"
-                defaultValue={configuredMailgunFrom ?? ""}
+                name="mail_from_email"
+                defaultValue={configuredMailFrom ?? ""}
                 placeholder="Bizzlet <postmaster@mg.bizzlet.com>"
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
               />
+              <p className="mt-1 text-xs text-slate-400">
+                The domain in this address (e.g.{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5">
+                  mg.bizzlet.com
+                </code>
+                ) must be verified as a sending domain in Mailtrap — there&apos;s
+                no separate domain field to fill in.
+              </p>
             </div>
             <button
               type="submit"
@@ -314,15 +300,15 @@ export default async function SettingsPage() {
             </summary>
             <ol className="mt-3 space-y-3 text-sm text-slate-500">
               <li>
-                <span className="font-medium text-slate-700">1. Create a Mailgun account</span>{" "}
+                <span className="font-medium text-slate-700">1. Create a Mailtrap account</span>{" "}
                 at{" "}
-                <span className="font-medium text-slate-700">mailgun.com</span>{" "}
+                <span className="font-medium text-slate-700">mailtrap.io</span>{" "}
                 if you don&apos;t already have one.
               </li>
               <li>
                 <span className="font-medium text-slate-700">2. Add a sending domain</span> —
-                in Mailgun, go to Sending → Domains → Add New Domain. A
-                subdomain like{" "}
+                in Mailtrap, go to Sending Domains → Add Domain. A subdomain
+                like{" "}
                 <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
                   mg.yourdomain.com
                 </code>{" "}
@@ -330,39 +316,38 @@ export default async function SettingsPage() {
               </li>
               <li>
                 <span className="font-medium text-slate-700">3. Add the DNS records</span> —
-                Mailgun will show TXT (SPF), TXT/CNAME (DKIM), and MX
+                Mailtrap will show TXT (SPF), TXT/CNAME (DKIM), and MX
                 records. Add these in your DNS provider&apos;s zone editor,
-                then click &quot;Verify DNS Settings&quot; in Mailgun.
-                Verification is usually quick but can take a few hours to
-                propagate.
+                then click &quot;Verify&quot; in Mailtrap. Verification is
+                usually quick but can take a few hours to propagate.
               </li>
               <li>
-                <span className="font-medium text-slate-700">4. Get an API key</span> — in
-                Mailgun, go to Settings → API Keys and copy the Private API
-                key.
+                <span className="font-medium text-slate-700">4. Get an API token</span> — in
+                Mailtrap, go to Settings → API Tokens and create (or copy)
+                a token with Sending permission.
               </li>
               <li>
                 <span className="font-medium text-slate-700">
-                  5. Set the API key as an environment variable
+                  5. Set the token as an environment variable
                 </span>{" "}
                 — add{" "}
                 <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
-                  MAILGUN_API_KEY
+                  MAILTRAP_API_TOKEN
                 </code>{" "}
-                in Vercel → Project → Settings → Environment Variables (and{" "}
-                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
-                  MAILGUN_REGION=eu
-                </code>{" "}
-                too, if your Mailgun account is on the EU region), then
-                redeploy. The API key stays an environment variable rather
+                in Vercel → Project → Settings → Environment Variables, then
+                redeploy. The token stays an environment variable rather
                 than a Settings field since it&apos;s a secret.
               </li>
               <li>
                 <span className="font-medium text-slate-700">
-                  6. Enter the domain and From address above
+                  6. Enter a From address above
                 </span>{" "}
-                and click Save — the status badge will flip to
-                &quot;Connected&quot; once Mailgun can reach the domain.
+                using the verified domain (e.g.{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  Bizzlet &lt;postmaster@mg.yourdomain.com&gt;
+                </code>
+                ) and click Save — the status badge will flip to
+                &quot;Connected&quot; once Mailtrap can reach your account.
               </li>
             </ol>
           </details>

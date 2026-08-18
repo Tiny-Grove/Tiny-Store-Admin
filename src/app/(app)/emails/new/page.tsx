@@ -65,7 +65,7 @@ export default function NewTemplatePage() {
           />
           <p className="mt-1 text-xs text-slate-400">
             Use %recipient.name% / %recipient.email% for personalization —
-            Mailgun fills these in per recipient when sending.
+            these are filled in per recipient when sending.
           </p>
         </div>
 

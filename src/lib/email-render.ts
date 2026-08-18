@@ -1,7 +1,7 @@
 // Wraps a template body with the admin-editable global header and footer.
 // Table-based layout for compatibility with older email clients (notably
-// Outlook desktop). Mailgun substitutes any %recipient.xxx% placeholders
-// left in the output per-recipient at send time.
+// Outlook desktop). Any %recipient.xxx% placeholders left in the output are
+// substituted per-recipient at send time (see emails/[id]/send/actions.ts).
 export function renderEmail({
   subject,
   bodyHtml,

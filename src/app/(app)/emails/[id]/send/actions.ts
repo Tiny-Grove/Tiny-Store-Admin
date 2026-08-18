@@ -2,16 +2,26 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getMailgunClient,
-  getMailgunDomain,
-  getMailgunFrom,
-  isMailgunConfigured,
-} from "@/lib/mailgun";
+import { getBulkClient, getMailFrom, isMailtrapConfigured } from "@/lib/mailtrap";
 import { renderEmail } from "@/lib/email-render";
 import type { EmailLayout, EmailTemplate } from "@/lib/supabase/types";
 
-const MAILGUN_BATCH_SIZE = 1000;
+// Mailtrap's batch endpoint caps requests at 500 messages per call.
+const MAILTRAP_BATCH_SIZE = 500;
+
+// Substitutes the %recipient.x% tokens admins write into template bodies
+// (see the Emails page hint text) — done locally rather than via Mailtrap's
+// own {{ }} template_variables, so existing templates keep working
+// unchanged across the provider swap.
+function renderForRecipient(
+  html: string,
+  vars: { name: string; email: string; unsubscribe_url: string }
+) {
+  return html
+    .replace(/%recipient\.name%/g, vars.name)
+    .replace(/%recipient\.email%/g, vars.email)
+    .replace(/%recipient\.unsubscribe_url%/g, vars.unsubscribe_url);
+}
 
 export interface SendState {
   phase: "form" | "previewed" | "sent";
@@ -79,8 +89,8 @@ export async function handleSend(
     };
   }
 
-  if (!(await isMailgunConfigured())) {
-    return { phase: "form", error: "Mailgun isn't configured.", statuses };
+  if (!(await isMailtrapConfigured())) {
+    return { phase: "form", error: "Mailtrap isn't configured.", statuses };
   }
 
   const appUrl = process.env.APP_URL;
@@ -133,9 +143,9 @@ export async function handleSend(
 
   const batchId = batch?.id as string | undefined;
 
-  const mg = getMailgunClient();
-  const domain = await getMailgunDomain();
-  const from = await getMailgunFrom();
+  const client = getBulkClient();
+  const from = await getMailFrom();
+  if (!from) return { phase: "form", error: "Mailtrap From address not set.", statuses };
 
   let sentCount = 0;
   let failedCount = 0;
@@ -147,36 +157,37 @@ export async function handleSend(
     error: string | null;
   }[] = [];
 
-  for (let i = 0; i < recipients.length; i += MAILGUN_BATCH_SIZE) {
-    const chunk = recipients.slice(i, i + MAILGUN_BATCH_SIZE);
-    const recipientVariables: Record<string, { name: string; unsubscribe_url: string }> = {};
-    for (const r of chunk) {
-      recipientVariables[r.email] = {
-        name: r.name ?? r.email,
-        unsubscribe_url: `${appUrl}/unsubscribe/${r.id}`,
-      };
-    }
+  for (let i = 0; i < recipients.length; i += MAILTRAP_BATCH_SIZE) {
+    const chunk = recipients.slice(i, i + MAILTRAP_BATCH_SIZE);
 
     try {
-      await mg.messages.create(domain, {
-        from,
-        to: chunk.map((r) => r.email),
-        subject: t.subject,
-        html,
-        "recipient-variables": JSON.stringify(recipientVariables),
+      const result = await client.batchSend({
+        base: { from, subject: t.subject },
+        requests: chunk.map((r) => ({
+          to: [{ email: r.email }],
+          html: renderForRecipient(html, {
+            name: r.name ?? r.email,
+            email: r.email,
+            unsubscribe_url: `${appUrl}/unsubscribe/${r.id}`,
+          }),
+        })),
       });
-      sentCount += chunk.length;
-      if (batchId) {
-        for (const r of chunk) {
+
+      chunk.forEach((r, idx) => {
+        const item = result.responses[idx];
+        const succeeded = item?.success ?? false;
+        if (succeeded) sentCount += 1;
+        else failedCount += 1;
+        if (batchId) {
           recipientRows.push({
             batch_id: batchId,
             customer_id: r.id,
             email: r.email,
-            status: "sent",
-            error: null,
+            status: succeeded ? "sent" : "failed",
+            error: succeeded ? null : (item?.errors?.join(", ") ?? "Send failed"),
           });
         }
-      }
+      });
     } catch (err) {
       failedCount += chunk.length;
       const message = err instanceof Error ? err.message : "Send failed";

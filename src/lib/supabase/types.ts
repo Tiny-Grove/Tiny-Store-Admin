@@ -112,8 +112,7 @@ export interface AdminUser {
 export interface SiteSettings {
   id: number;
   site_url: string | null;
-  mailgun_domain: string | null;
-  mailgun_from_email: string | null;
+  mail_from_email: string | null;
   updated_at: string;
 }
 
