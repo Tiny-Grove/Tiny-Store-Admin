@@ -27,7 +27,11 @@ export function EmailLayoutEditors({
       >
         <h2 className="font-medium text-slate-900">Global header</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Shown at the top of every email, inside the green banner.
+          Shown at the top of every email. Must be a complete{" "}
+          <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+            &lt;tr&gt;...&lt;/tr&gt;
+          </code>{" "}
+          row — it carries its own cell and styling.
         </p>
         <form action={saveHeader} className="mt-3 space-y-2">
           <textarea
@@ -61,7 +65,11 @@ export function EmailLayoutEditors({
       >
         <h2 className="font-medium text-slate-900">Global footer</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Appended to every email. Use{" "}
+          Appended to every email. Must be a complete{" "}
+          <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+            &lt;tr&gt;...&lt;/tr&gt;
+          </code>{" "}
+          row. Use{" "}
           <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
             %recipient.unsubscribe_url%
           </code>{" "}

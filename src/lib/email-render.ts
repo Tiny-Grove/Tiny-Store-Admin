@@ -1,7 +1,11 @@
 // Wraps a template body with the admin-editable global header and footer.
-// Table-based layout for compatibility with older email clients (notably
-// Outlook desktop). Any %recipient.xxx% placeholders left in the output are
-// substituted per-recipient at send time (see emails/[id]/send/actions.ts).
+// header_html/footer_html must each be a complete <tr>...</tr> row (they
+// carry their own <td>, styling and background) — inserted as siblings of
+// the body row rather than nested inside another <td>, since wrapping a
+// <tr> inside a <td> is invalid table markup. Table-based layout throughout
+// for compatibility with older email clients (notably Outlook desktop).
+// Any %recipient.xxx% placeholders left in the output are substituted
+// per-recipient at send time (see emails/[id]/send/actions.ts).
 export function renderEmail({
   subject,
   bodyHtml,
@@ -25,21 +29,13 @@ export function renderEmail({
       <tr>
         <td align="center">
           <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0;">
+            ${headerHtml}
             <tr>
-              <td style="background-color:#0d7711; padding:20px 32px; font-family: Arial, Helvetica, sans-serif;">
-                ${headerHtml}
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:32px; color:#0f172a; font-size:15px; line-height:1.6; font-family: Arial, Helvetica, sans-serif;">
+              <td style="padding:32px 32px 0 32px; color:#0f172a; font-size:15px; line-height:1.6; font-family: Arial, Helvetica, sans-serif;">
                 ${bodyHtml}
               </td>
             </tr>
-            <tr>
-              <td style="padding:20px 32px; background-color:#f8fafc; border-top:1px solid #e2e8f0; color:#64748b; font-size:12px; line-height:1.6; font-family: Arial, Helvetica, sans-serif;">
-                ${footerHtml}
-              </td>
-            </tr>
+            ${footerHtml}
           </table>
         </td>
       </tr>
