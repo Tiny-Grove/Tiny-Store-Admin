@@ -15,7 +15,7 @@ const FULLY_PUBLIC_PATHS = [
   "/api/webhooks/stripe-connect",
   "/api/webhooks/stripe",
   "/api/webhooks/mailtrap-inbound",
-  "/connect/return",
+  "/connect",
 ];
 
 // Paths in the admin area reachable without an admin session.
@@ -32,7 +32,7 @@ const ADMIN_ONLY_PATHS = ["/settings", "/finance", "/analytics"];
 // else 404s so the admin panel is never reachable from that host. API/
 // webhook routes are server-to-server and stay reachable everywhere, so
 // they're checked separately rather than listed here.
-const STOREFRONT_DOMAIN_ALLOWED_PATHS = ["/store", "/connect/return"];
+const STOREFRONT_DOMAIN_ALLOWED_PATHS = ["/store", "/connect"];
 
 // The storefront hostname rarely changes, so it's cached in module scope
 // (persists across warm invocations of this edge function) rather than

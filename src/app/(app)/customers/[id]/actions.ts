@@ -9,6 +9,9 @@ import { uploadCustomerAsset } from "@/lib/customer-assets";
 import { parsePriceToCents } from "@/lib/format";
 import { generateProductCode } from "@/lib/product-code";
 import { getSiteUrl } from "@/lib/site-url";
+import { getMailFrom, getTransactionalClient, isMailtrapConfigured } from "@/lib/mailtrap";
+import { renderEmail } from "@/lib/email-render";
+import type { EmailLayout } from "@/lib/supabase/types";
 
 export async function addNote(formData: FormData) {
   const supabase = await createClient();
@@ -268,4 +271,125 @@ export async function syncSubscriptionsFromStripe(customerId: string) {
   }
 
   revalidatePath(`/customers/${customerId}`);
+}
+
+export interface ConnectLinkState {
+  url?: string;
+  error?: string;
+}
+
+async function createConnectOnboardingLink(customerId: string): Promise<
+  { url: string; toEmail: string } | { error: string }
+> {
+  if (!isStripeConfigured()) return { error: "Stripe isn't configured." };
+  if (!customerId) return { error: "Missing customer." };
+
+  const siteUrl = await getSiteUrl();
+  if (!siteUrl) return { error: "Set the storefront domain in Settings before creating this link." };
+
+  const admin = createAdminClient();
+  const { data: customer } = await admin
+    .from("customers")
+    .select("email, stripe_connect_account_id")
+    .eq("id", customerId)
+    .maybeSingle();
+
+  if (!customer?.stripe_connect_account_id) {
+    return { error: "This customer hasn't started connecting Stripe yet." };
+  }
+
+  // Deliberately not /connect/return here — that page redirects into the
+  // mobile app's custom URL scheme, which only makes sense when opened
+  // from the app's own in-app browser. A link an admin sends by email
+  // could be opened anywhere, so it lands on a plain confirmation page
+  // instead (see src/app/connect/complete/page.tsx).
+  const returnUrl = `${siteUrl}/connect/complete`;
+
+  try {
+    const link = await getStripe().accountLinks.create({
+      account: customer.stripe_connect_account_id,
+      refresh_url: returnUrl,
+      return_url: returnUrl,
+      type: "account_onboarding",
+    });
+    return { url: link.url, toEmail: customer.email };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Couldn't create the link." };
+  }
+}
+
+// Generates a fresh Stripe onboarding link for the admin to copy and send
+// through whatever channel makes sense (WhatsApp, a manual email, etc).
+// Stripe account links are single-use and expire within minutes, so this
+// must be called right before the link is actually used — never cache or
+// reuse the result.
+export async function generateConnectOnboardingLink(
+  _prevState: ConnectLinkState,
+  formData: FormData
+): Promise<ConnectLinkState> {
+  const customerId = formData.get("customerId") as string;
+  const result = await createConnectOnboardingLink(customerId);
+  return "error" in result ? { error: result.error } : { url: result.url };
+}
+
+export interface ConnectEmailState {
+  sentTo?: string;
+  error?: string;
+}
+
+// Same as generateConnectOnboardingLink, but emails the fresh link
+// directly to the customer via Mailtrap instead of handing it back to the
+// admin to copy — minimizes the delay between generating the (short-lived)
+// link and it actually reaching an inbox.
+export async function sendConnectOnboardingLinkEmail(
+  _prevState: ConnectEmailState,
+  formData: FormData
+): Promise<ConnectEmailState> {
+  const customerId = formData.get("customerId") as string;
+  const result = await createConnectOnboardingLink(customerId);
+  if ("error" in result) return { error: result.error };
+
+  if (!(await isMailtrapConfigured())) return { error: "Mailtrap isn't configured." };
+  const from = await getMailFrom();
+  if (!from) return { error: "Mailtrap From address isn't set." };
+
+  const admin = createAdminClient();
+  const { data: layout } = await admin
+    .from("email_layout")
+    .select("*")
+    .eq("id", true)
+    .maybeSingle();
+  const layoutRow = layout as EmailLayout | null;
+
+  const bodyHtml = `
+    <p>Hi,</p>
+    <p>You're almost set up to accept payments — a few details still need
+    to be confirmed with Stripe. Click below to finish:</p>
+    <p style="margin-top:24px;">
+      <a href="${result.url}" style="color:#0d7711;">Finish setting up payments →</a>
+    </p>
+    <p style="margin-top:24px; font-size:13px; color:#64748b;">
+      This link is only valid for a few minutes for security. If it's
+      expired by the time you click it, just reply and we'll send a new one.
+    </p>
+  `;
+  const html = renderEmail({
+    subject: "Finish setting up payments",
+    bodyHtml,
+    headerHtml: layoutRow?.header_html ?? "",
+    footerHtml: layoutRow?.footer_html ?? "",
+  });
+
+  try {
+    const client = getTransactionalClient();
+    await client.send({
+      from,
+      to: [{ email: result.toEmail }],
+      subject: "Finish setting up payments",
+      html,
+    });
+    return { sentTo: result.toEmail };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Send failed." };
+  }
 }

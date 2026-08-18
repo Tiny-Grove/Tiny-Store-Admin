@@ -23,8 +23,13 @@ import { RenewalsModal } from "./renewals-modal";
 import { DangerZone } from "./danger-zone";
 import { getRenewalCounts } from "@/lib/renewals";
 import { getSiteUrl } from "@/lib/site-url";
-import { getConnectAccountStatus } from "@/lib/stripe-connect-status";
+import {
+  getConnectAccountStatus,
+  humanizeCapabilityName,
+  humanizeRequirement,
+} from "@/lib/stripe-connect-status";
 import { CustomerTabs } from "./customer-tabs";
+import { ConnectOnboardingActions } from "./connect-onboarding-actions";
 
 function initials(name: string) {
   return name
@@ -455,12 +460,17 @@ export default async function CustomerDetailPage({
     </div>
   );
 
-  const paymentsTab = (
+  const connectIncomplete =
+    !!connectStatus &&
+    (!connectStatus.chargesEnabled ||
+      !connectStatus.detailsSubmitted ||
+      connectStatus.currentlyDue.length > 0 ||
+      connectStatus.pastDue.length > 0);
+
+  const stripeConnectTab = (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-slate-700">
-          Stripe Connect (storefront payments)
-        </h3>
+        <h3 className="text-sm font-medium text-slate-700">Stripe Connect</h3>
         {connectStatus && (
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -498,6 +508,25 @@ export default async function CustomerDetailPage({
               </dd>
             </div>
             <div>
+              <dt className="text-slate-500">Stripe email</dt>
+              <dd className="mt-0.5 truncate font-medium text-slate-900">
+                {connectStatus.stripeEmail ?? "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Business type</dt>
+              <dd className="mt-0.5 font-medium text-slate-900 capitalize">
+                {connectStatus.businessType?.replace(/_/g, " ") ?? "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Country / currency</dt>
+              <dd className="mt-0.5 font-medium text-slate-900 uppercase">
+                {connectStatus.country ?? "—"}
+                {connectStatus.defaultCurrency && ` · ${connectStatus.defaultCurrency}`}
+              </dd>
+            </div>
+            <div>
               <dt className="text-slate-500">Charges enabled</dt>
               <dd className="mt-0.5 font-medium text-slate-900">
                 {connectStatus.chargesEnabled ? "Yes" : "No"}
@@ -517,12 +546,82 @@ export default async function CustomerDetailPage({
             </div>
           </dl>
 
-          {connectStatus.requirementsDue > 0 && (
-            <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              Stripe needs {connectStatus.requirementsDue} more{" "}
-              {connectStatus.requirementsDue === 1 ? "item" : "items"} from
-              the merchant before payments can go live.
+          {connectStatus.capabilities.length > 0 && (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <h4 className="mb-2 text-xs font-medium text-slate-500">Capabilities</h4>
+              <div className="flex flex-wrap gap-2">
+                {connectStatus.capabilities.map((c) => (
+                  <span
+                    key={c.name}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      c.status === "active"
+                        ? "bg-green-50 text-green-700"
+                        : c.status === "pending"
+                          ? "bg-amber-50 text-amber-700"
+                          : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        c.status === "active"
+                          ? "bg-green-500"
+                          : c.status === "pending"
+                            ? "bg-amber-500"
+                            : "bg-slate-400"
+                      }`}
+                    />
+                    {humanizeCapabilityName(c.name)} · {c.status}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {connectStatus.disabledReason && (
+            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+              Disabled: {humanizeRequirement(connectStatus.disabledReason)}
             </p>
+          )}
+
+          {connectStatus.pastDue.length > 0 && (
+            <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+              <p className="font-medium">
+                Past due — Stripe has restricted this account until these are
+                resolved:
+              </p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {connectStatus.pastDue.map((field) => (
+                  <li key={field}>{humanizeRequirement(field)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {connectStatus.currentlyDue.length > 0 && (
+            <div className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              <p className="font-medium">
+                Needed from the merchant
+                {connectStatus.currentDeadline &&
+                  ` by ${new Date(connectStatus.currentDeadline * 1000).toLocaleDateString()}`}
+                :
+              </p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {connectStatus.currentlyDue.map((field) => (
+                  <li key={field}>{humanizeRequirement(field)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {connectStatus.pendingVerification.length > 0 && (
+            <div className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+              <p className="font-medium">Stripe is verifying:</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {connectStatus.pendingVerification.map((field) => (
+                  <li key={field}>{humanizeRequirement(field)}</li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {connectStatus.error && (
@@ -530,6 +629,10 @@ export default async function CustomerDetailPage({
               Couldn&apos;t verify live status ({connectStatus.error}) —
               showing the last known state.
             </p>
+          )}
+
+          {connectIncomplete && !connectStatus.error && (
+            <ConnectOnboardingActions customerId={customer.id} />
           )}
         </>
       )}
@@ -667,7 +770,7 @@ export default async function CustomerDetailPage({
     { id: "subscriptions", label: "Subscriptions", content: subscriptionsTab },
     { id: "store", label: "Store", content: storeTab },
     { id: "branding", label: "Branding", content: brandingTab },
-    { id: "payments", label: "Payments", content: paymentsTab },
+    { id: "stripe-connect", label: "Stripe Connect", content: stripeConnectTab },
     { id: "inventory", label: "Inventory", content: inventoryTab },
     { id: "communications", label: "Communications", content: communicationsTab },
     ...(isAdmin ? [{ id: "danger", label: "Danger zone", content: dangerZoneTab }] : []),
