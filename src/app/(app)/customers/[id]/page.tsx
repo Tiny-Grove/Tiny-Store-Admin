@@ -6,7 +6,7 @@ import type { Customer, Industry, Note, Product, Subscription } from "@/lib/supa
 import { accountStatusBadgeClasses, statusBadgeClasses, statusDotClasses } from "@/lib/status-badge";
 import { isStripeConfigured } from "@/lib/stripe";
 import { getEnabledPlans } from "@/lib/stripe-plans";
-import { COUNTRIES, flagEmoji } from "@/lib/countries";
+import { COUNTRIES, countryName, flagEmoji } from "@/lib/countries";
 import { formatMoney } from "@/lib/format";
 import {
   addNote,
@@ -903,9 +903,13 @@ export default async function CustomerDetailPage({
         </div>
 
         <div className="flex flex-col items-end gap-1.5">
-          <span className="text-2xl leading-none" title={customer.country ?? "No country set"}>
-            {flagEmoji(customer.country)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-2xl leading-none">{flagEmoji(customer.country)}</span>
+            <span className="text-xs font-medium text-slate-600">
+              {countryName(customer.country) ?? "No country set"}
+              {customer.currency && ` · ${customer.currency.toUpperCase()}`}
+            </span>
+          </div>
           {activeSubscription && (
             <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">
               {activeSubscription.plan_name ?? activeSubscription.plan}
