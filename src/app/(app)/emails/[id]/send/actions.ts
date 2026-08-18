@@ -79,7 +79,7 @@ export async function handleSend(
     };
   }
 
-  if (!isMailgunConfigured()) {
+  if (!(await isMailgunConfigured())) {
     return { phase: "form", error: "Mailgun isn't configured.", statuses };
   }
 
@@ -134,8 +134,8 @@ export async function handleSend(
   const batchId = batch?.id as string | undefined;
 
   const mg = getMailgunClient();
-  const domain = getMailgunDomain();
-  const from = getMailgunFrom();
+  const domain = await getMailgunDomain();
+  const from = await getMailgunFrom();
 
   let sentCount = 0;
   let failedCount = 0;

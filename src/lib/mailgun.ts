@@ -1,7 +1,9 @@
 import "server-only";
+import { cache } from "react";
 import Mailgun from "mailgun.js";
 import FormData from "form-data";
 import type { Interfaces } from "mailgun.js/definitions";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const API_BASE_BY_REGION = {
   us: "https://api.mailgun.net",
@@ -10,18 +12,40 @@ const API_BASE_BY_REGION = {
 
 let client: Interfaces.IMailgunClient | null = null;
 
-export function isMailgunConfigured() {
-  return !!(process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN);
+// The sending domain and From address — editable from Settings (site_settings
+// table) so they no longer need a redeploy to change. Falls back to the
+// MAILGUN_DOMAIN / MAILGUN_FROM_EMAIL env vars for environments that
+// haven't set them in the UI yet. Cached per-request since a single send
+// can ask for both values.
+const getMailgunSettings = cache(async () => {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("site_settings")
+    .select("mailgun_domain, mailgun_from_email")
+    .eq("id", 1)
+    .maybeSingle<{ mailgun_domain: string | null; mailgun_from_email: string | null }>();
+
+  return {
+    domain: data?.mailgun_domain?.trim() || process.env.MAILGUN_DOMAIN || null,
+    from: data?.mailgun_from_email?.trim() || process.env.MAILGUN_FROM_EMAIL || null,
+  };
+});
+
+export async function isMailgunConfigured() {
+  const { domain } = await getMailgunSettings();
+  return !!(process.env.MAILGUN_API_KEY && domain);
 }
 
-export function getMailgunDomain(): string {
-  const domain = process.env.MAILGUN_DOMAIN;
-  if (!domain) throw new Error("MAILGUN_DOMAIN is not set");
+export async function getMailgunDomain(): Promise<string> {
+  const { domain } = await getMailgunSettings();
+  if (!domain) throw new Error("Mailgun sending domain is not set");
   return domain;
 }
 
-export function getMailgunFrom(): string {
-  return process.env.MAILGUN_FROM_EMAIL || `Bizzlet <postmaster@${getMailgunDomain()}>`;
+export async function getMailgunFrom(): Promise<string> {
+  const { from } = await getMailgunSettings();
+  if (from) return from;
+  return `Bizzlet <postmaster@${await getMailgunDomain()}>`;
 }
 
 // Server-only Mailgun client — never import this from client components.

@@ -82,3 +82,23 @@ export async function updateSiteUrl(formData: FormData) {
   revalidatePath("/settings");
   revalidatePath("/customers", "layout");
 }
+
+// The Mailgun sending domain and From address, editable here instead of
+// only via the MAILGUN_DOMAIN / MAILGUN_FROM_EMAIL env vars (see
+// src/lib/mailgun.ts for how they're read). MAILGUN_API_KEY stays an
+// env-only secret — it isn't exposed to this form.
+export async function updateMailgunSettings(formData: FormData) {
+  if (!(await requireAdmin())) return;
+
+  const domain = (formData.get("mailgun_domain") as string)?.trim() ?? "";
+  const from = (formData.get("mailgun_from_email") as string)?.trim() ?? "";
+
+  const admin = createAdminClient();
+  await admin
+    .from("site_settings")
+    .update({ mailgun_domain: domain || null, mailgun_from_email: from || null })
+    .eq("id", 1);
+
+  revalidatePath("/settings");
+  revalidatePath("/emails", "layout");
+}

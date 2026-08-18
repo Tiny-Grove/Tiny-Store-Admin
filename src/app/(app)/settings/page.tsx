@@ -9,6 +9,7 @@ import {
   addIndustry,
   toggleAdminUserActive,
   updateAdminUserRole,
+  updateMailgunSettings,
   updateSiteUrl,
 } from "./actions";
 import { RoleSelect } from "./role-select";
@@ -31,12 +32,12 @@ async function getStripeStatus() {
 }
 
 async function getMailgunStatus() {
-  if (!isMailgunConfigured()) {
+  if (!(await isMailgunConfigured())) {
     return { connected: false, error: null as string | null };
   }
 
   try {
-    await getMailgunClient().domains.get(getMailgunDomain());
+    await getMailgunClient().domains.get(await getMailgunDomain());
     return { connected: true, error: null as string | null };
   } catch (err) {
     return {
@@ -74,8 +75,10 @@ export default async function SettingsPage() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "Not configured";
   const configuredSiteUrl = siteSettingsRow?.site_url ?? null;
   const siteUrl = configuredSiteUrl || process.env.PUBLIC_SITE_URL || null;
-  const mailgunDomain = process.env.MAILGUN_DOMAIN || "Not set";
-  const mailgunFrom = process.env.MAILGUN_FROM_EMAIL || "Not set";
+  const configuredMailgunDomain = siteSettingsRow?.mailgun_domain ?? null;
+  const configuredMailgunFrom = siteSettingsRow?.mailgun_from_email ?? null;
+  const mailgunDomain = configuredMailgunDomain || process.env.MAILGUN_DOMAIN || null;
+  const mailgunFrom = configuredMailgunFrom || process.env.MAILGUN_FROM_EMAIL || null;
 
   return (
     <div>
@@ -235,13 +238,23 @@ export default async function SettingsPage() {
             <div>
               <dt className="text-slate-500">Sending domain</dt>
               <dd className="mt-0.5 truncate font-medium text-slate-900">
-                {mailgunDomain}
+                {mailgunDomain ?? "Not set"}
+                {!configuredMailgunDomain && process.env.MAILGUN_DOMAIN && (
+                  <span className="ml-1.5 text-xs font-normal text-slate-400">
+                    (env var)
+                  </span>
+                )}
               </dd>
             </div>
             <div>
               <dt className="text-slate-500">From address</dt>
               <dd className="mt-0.5 truncate font-medium text-slate-900">
-                {mailgunFrom}
+                {mailgunFrom ?? `Bizzlet <postmaster@${mailgunDomain ?? "…"}>`}
+                {!configuredMailgunFrom && process.env.MAILGUN_FROM_EMAIL && (
+                  <span className="ml-1.5 text-xs font-normal text-slate-400">
+                    (env var)
+                  </span>
+                )}
               </dd>
             </div>
             <div>
@@ -260,9 +273,99 @@ export default async function SettingsPage() {
           {!mailgunStatus.connected && (
             <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
               {mailgunStatus.error ??
-                "Add MAILGUN_API_KEY and MAILGUN_DOMAIN to your environment variables to connect Mailgun."}
+                "Add MAILGUN_API_KEY to your environment variables and set a sending domain below to connect Mailgun."}
             </p>
           )}
+
+          <form action={updateMailgunSettings} className="mt-4 flex flex-wrap items-end gap-2">
+            <div className="min-w-48 flex-1">
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                Sending domain
+              </label>
+              <input
+                name="mailgun_domain"
+                defaultValue={configuredMailgunDomain ?? ""}
+                placeholder="mg.bizzlet.com"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+              />
+            </div>
+            <div className="min-w-48 flex-1">
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                From address
+              </label>
+              <input
+                name="mailgun_from_email"
+                defaultValue={configuredMailgunFrom ?? ""}
+                placeholder="Bizzlet <postmaster@mg.bizzlet.com>"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md active:translate-y-0"
+            >
+              Save
+            </button>
+          </form>
+
+          <details className="mt-5 border-t border-slate-100 pt-4">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700">
+              Setup instructions
+            </summary>
+            <ol className="mt-3 space-y-3 text-sm text-slate-500">
+              <li>
+                <span className="font-medium text-slate-700">1. Create a Mailgun account</span>{" "}
+                at{" "}
+                <span className="font-medium text-slate-700">mailgun.com</span>{" "}
+                if you don&apos;t already have one.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">2. Add a sending domain</span> —
+                in Mailgun, go to Sending → Domains → Add New Domain. A
+                subdomain like{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  mg.yourdomain.com
+                </code>{" "}
+                is recommended over your root domain.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">3. Add the DNS records</span> —
+                Mailgun will show TXT (SPF), TXT/CNAME (DKIM), and MX
+                records. Add these in your DNS provider&apos;s zone editor,
+                then click &quot;Verify DNS Settings&quot; in Mailgun.
+                Verification is usually quick but can take a few hours to
+                propagate.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">4. Get an API key</span> — in
+                Mailgun, go to Settings → API Keys and copy the Private API
+                key.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">
+                  5. Set the API key as an environment variable
+                </span>{" "}
+                — add{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  MAILGUN_API_KEY
+                </code>{" "}
+                in Vercel → Project → Settings → Environment Variables (and{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  MAILGUN_REGION=eu
+                </code>{" "}
+                too, if your Mailgun account is on the EU region), then
+                redeploy. The API key stays an environment variable rather
+                than a Settings field since it&apos;s a secret.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">
+                  6. Enter the domain and From address above
+                </span>{" "}
+                and click Save — the status badge will flip to
+                &quot;Connected&quot; once Mailgun can reach the domain.
+              </li>
+            </ol>
+          </details>
         </section>
 
         <section

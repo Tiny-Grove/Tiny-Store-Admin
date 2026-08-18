@@ -26,7 +26,7 @@ export async function sendTicketReplyEmail({
   replyBody: string;
   ticketId: string;
 }) {
-  if (!isMailgunConfigured()) return { sent: false, error: "Mailgun not configured" };
+  if (!(await isMailgunConfigured())) return { sent: false, error: "Mailgun not configured" };
 
   const appUrl = process.env.APP_URL;
   if (!appUrl) return { sent: false, error: "APP_URL not set" };
@@ -56,8 +56,8 @@ export async function sendTicketReplyEmail({
 
   try {
     const mg = getMailgunClient();
-    await mg.messages.create(getMailgunDomain(), {
-      from: getMailgunFrom(),
+    await mg.messages.create(await getMailgunDomain(), {
+      from: await getMailgunFrom(),
       to: [to],
       subject,
       html,

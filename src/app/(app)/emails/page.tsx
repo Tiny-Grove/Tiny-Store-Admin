@@ -7,7 +7,7 @@ import { saveFooter, saveHeader } from "./actions";
 export default async function EmailsPage() {
   const admin = createAdminClient();
 
-  const [{ data: templates }, { data: layout }, { data: batches }] =
+  const [{ data: templates }, { data: layout }, { data: batches }, mailgunConfigured] =
     await Promise.all([
       admin
         .from("email_templates")
@@ -19,6 +19,7 @@ export default async function EmailsPage() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(10),
+      isMailgunConfigured(),
     ]);
 
   const templateList = (templates ?? []) as EmailTemplate[];
@@ -42,7 +43,7 @@ export default async function EmailsPage() {
         </Link>
       </div>
 
-      {!isMailgunConfigured() && (
+      {!mailgunConfigured && (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           Mailgun isn&apos;t connected yet.{" "}
           <Link href="/settings" className="underline">
