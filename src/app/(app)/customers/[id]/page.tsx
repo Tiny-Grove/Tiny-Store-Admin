@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Customer, Industry, Note, Product, Subscription } from "@/lib/supabase/types";
-import { statusBadgeClasses, statusDotClasses } from "@/lib/status-badge";
+import { accountStatusBadgeClasses, statusBadgeClasses, statusDotClasses } from "@/lib/status-badge";
 import { isStripeConfigured } from "@/lib/stripe";
 import { getEnabledPlans } from "@/lib/stripe-plans";
 import { COUNTRIES, flagEmoji } from "@/lib/countries";
@@ -11,6 +11,7 @@ import { formatMoney } from "@/lib/format";
 import {
   addNote,
   addProduct,
+  reactivateAccount,
   syncSubscriptionsFromStripe,
   updateStoreInfo,
   uploadCustomerFavicon,
@@ -40,6 +41,18 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+// Shows the specific OS + version when the mobile app has reported it
+// (see 20260720091500_mobile_signup_customer_link.sql), falling back to
+// just "Apple Device" / "Android Device" if only the coarse platform is
+// known.
+function deviceLabel(platform: string | null, version: string | null): string | null {
+  if (!platform) return null;
+  const p = platform.toLowerCase();
+  if (p === "ios") return version ? `iOS ${version}` : "Apple Device";
+  if (p === "android") return version ? `Android ${version}` : "Android Device";
+  return version ? `${platform} ${version}` : platform;
+}
+
 type CustomerDetail = Customer & {
   subscriptions: Subscription[];
   notes: Note[];
@@ -59,10 +72,13 @@ type CommunicationRow = {
 
 export default async function CustomerDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const { tab: initialTabId } = await searchParams;
 
   const supabase = createAdminClient();
   const [
@@ -820,6 +836,45 @@ export default async function CustomerDetailPage({
         </div>
       )}
 
+      {customer.account_status === "suspended" ? (
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm text-red-800">
+            This account is suspended
+            {customer.payment_failed_at &&
+              ` — payment first failed on ${new Date(customer.payment_failed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`}
+            . The customer can&apos;t sign in to the app until this is
+            reactivated.
+          </p>
+          <form action={reactivateAccount} className="shrink-0">
+            <input type="hidden" name="customerId" value={customer.id} />
+            <button
+              type="submit"
+              className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-800 transition-colors hover:bg-red-100"
+            >
+              Reactivate account
+            </button>
+          </form>
+        </div>
+      ) : (
+        customer.payment_failed_at && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-sm text-amber-800">
+              Payment failed on{" "}
+              {new Date(customer.payment_failed_at).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+              . The account will be automatically suspended on{" "}
+              {new Date(
+                new Date(customer.payment_failed_at).getTime() + 7 * 24 * 60 * 60 * 1000
+              ).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}{" "}
+              unless it&apos;s resolved before then.
+            </p>
+          </div>
+        )
+      )}
+
       <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-700 text-lg font-semibold text-white shadow-md shadow-brand-700/25">
           {initials(displayName)}
@@ -830,19 +885,12 @@ export default async function CustomerDetailPage({
               {displayName}
             </h1>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                customer.account_status === "active"
-                  ? "bg-green-50 text-green-700"
-                  : "bg-amber-50 text-amber-700"
-              }`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${accountStatusBadgeClasses(
+                customer.account_status
+              )}`}
             >
               {customer.account_status}
             </span>
-            {activeSubscription && (
-              <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">
-                {activeSubscription.plan_name ?? activeSubscription.plan}
-              </span>
-            )}
           </div>
           <p className="text-slate-500">{customer.email}</p>
           <p className="mt-0.5 text-xs text-slate-400">
@@ -854,14 +902,26 @@ export default async function CustomerDetailPage({
           </p>
         </div>
 
-        <span className="text-2xl leading-none" title={customer.country ?? "No country set"}>
-          {flagEmoji(customer.country)}
-        </span>
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="text-2xl leading-none" title={customer.country ?? "No country set"}>
+            {flagEmoji(customer.country)}
+          </span>
+          {activeSubscription && (
+            <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">
+              {activeSubscription.plan_name ?? activeSubscription.plan}
+            </span>
+          )}
+          {deviceLabel(customer.platform, customer.platform_version) && (
+            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+              {deviceLabel(customer.platform, customer.platform_version)}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <CustomerTabs tabs={tabs} />
+          <CustomerTabs tabs={tabs} initialTabId={initialTabId} />
         </div>
 
         <aside className="animate-fade-in-up lg:col-span-1">

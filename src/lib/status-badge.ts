@@ -23,3 +23,18 @@ export function statusDotClasses(status: string) {
       return "bg-amber-500";
   }
 }
+
+// customers.account_status ("invited" | "active" | "suspended") — a
+// separate domain from subscription status above, so suspended (urgent,
+// blocks app login) reads as red rather than sharing the subscription
+// scale's meanings.
+export function accountStatusBadgeClasses(status: string) {
+  switch (status) {
+    case "active":
+      return "bg-green-50 text-green-700";
+    case "suspended":
+      return "bg-red-50 text-red-700";
+    default:
+      return "bg-amber-50 text-amber-700";
+  }
+}

@@ -393,3 +393,25 @@ export async function sendConnectOnboardingLinkEmail(
     return { error: err instanceof Error ? err.message : "Send failed." };
   }
 }
+
+// Reactivation is always a deliberate admin/staff action, never automatic —
+// even once Stripe shows a later successful charge, so a human confirms
+// the payment actually cleared before the account regains app access.
+// Intentionally not admin-only: any active staff member can do this.
+export async function reactivateAccount(formData: FormData) {
+  const customerId = formData.get("customerId") as string;
+  if (!customerId) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("customers")
+    .update({
+      account_status: "active",
+      payment_failed_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", customerId);
+
+  revalidatePath(`/customers/${customerId}`);
+  revalidatePath("/customers");
+}

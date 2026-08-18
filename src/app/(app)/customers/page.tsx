@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Customer, Subscription } from "@/lib/supabase/types";
-import { statusBadgeClasses, statusDotClasses } from "@/lib/status-badge";
+import { accountStatusBadgeClasses, statusBadgeClasses, statusDotClasses } from "@/lib/status-badge";
 import { formatMoney } from "@/lib/format";
 import { restoreCustomer } from "./[id]/danger-zone-actions";
 
@@ -105,11 +105,9 @@ export default async function CustomersPage({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          customer.account_status === "active"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-amber-50 text-amber-700"
-                        }`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${accountStatusBadgeClasses(
+                          customer.account_status
+                        )}`}
                       >
                         {customer.account_status}
                       </span>

@@ -1,6 +1,6 @@
 export type SubscriptionStatus = "trialing" | "active" | "past_due" | "canceled";
 export type AdminRole = "admin" | "staff";
-export type AccountStatus = "invited" | "active";
+export type AccountStatus = "invited" | "active" | "suspended";
 
 export interface Customer {
   id: string;
@@ -12,9 +12,12 @@ export interface Customer {
   email_opt_out: boolean;
   auth_user_id: string | null;
   account_status: AccountStatus;
+  payment_failed_at: string | null;
   invite_token_hash: string | null;
   invited_at: string | null;
   activated_at: string | null;
+  platform: string | null;
+  platform_version: string | null;
   primary_color: string | null;
   secondary_color: string | null;
   slogan: string | null;
@@ -171,6 +174,7 @@ export interface SupportTicket {
   guest_name: string | null;
   subject: string;
   status: TicketStatus;
+  tags: string[];
   created_at: string;
   updated_at: string;
   last_message_at: string;

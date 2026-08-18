@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Customer, SupportTicket, SupportTicketMessage } from "@/lib/supabase/types";
 import { ticketStatusBadgeClasses, ticketStatusDotClasses } from "@/lib/ticket-status";
-import { replyToTicket, setTicketStatus } from "./actions";
+import { addTicketTag, removeTicketTag, replyToTicket, setTicketStatus } from "./actions";
 
 const STATUS_OPTIONS = ["open", "pending", "resolved"];
 
@@ -75,7 +75,16 @@ export default async function TicketDetailPage({
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{t.subject}</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {t.customers?.name ?? t.customers?.email ?? t.guest_name ?? t.guest_email ?? "Unknown"}
+            {t.customers ? (
+              <Link
+                href={`/customers/${t.customers.id}?tab=communications`}
+                className="font-medium text-brand-600 hover:underline"
+              >
+                {t.customers.name ?? t.customers.email}
+              </Link>
+            ) : (
+              (t.guest_name ?? t.guest_email ?? "Unknown")
+            )}
             {t.customers?.name && (
               <span className="text-slate-400"> · {t.customers.email}</span>
             )}
@@ -106,14 +115,46 @@ export default async function TicketDetailPage({
         </form>
       </div>
 
-      <span
-        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${ticketStatusBadgeClasses(
-          t.status
-        )}`}
-      >
-        <span className={`h-1.5 w-1.5 rounded-full ${ticketStatusDotClasses(t.status)}`} />
-        {t.status}
-      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${ticketStatusBadgeClasses(
+            t.status
+          )}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${ticketStatusDotClasses(t.status)}`} />
+          {t.status}
+        </span>
+
+        {t.tags.map((tag) => (
+          <form key={tag} action={removeTicketTag} className="inline-flex">
+            <input type="hidden" name="ticketId" value={t.id} />
+            <input type="hidden" name="tag" value={tag} />
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200"
+              title="Remove tag"
+            >
+              {tag}
+              <span className="text-slate-400">×</span>
+            </button>
+          </form>
+        ))}
+
+        <form action={addTicketTag} className="inline-flex items-center gap-1">
+          <input type="hidden" name="ticketId" value={t.id} />
+          <input
+            name="tag"
+            placeholder="Add tag…"
+            className="w-24 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+          />
+          <button
+            type="submit"
+            className="rounded-full border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100"
+          >
+            Add
+          </button>
+        </form>
+      </div>
 
       {messageList.length === 0 ? (
         <p className="text-sm text-slate-500">No messages yet.</p>

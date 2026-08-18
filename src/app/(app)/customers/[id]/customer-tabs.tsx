@@ -8,8 +8,16 @@ export interface CustomerTab {
   content: ReactNode;
 }
 
-export function CustomerTabs({ tabs }: { tabs: CustomerTab[] }) {
-  const [activeId, setActiveId] = useState(tabs[0]?.id);
+export function CustomerTabs({
+  tabs,
+  initialTabId,
+}: {
+  tabs: CustomerTab[];
+  initialTabId?: string;
+}) {
+  const [activeId, setActiveId] = useState(
+    initialTabId && tabs.some((tab) => tab.id === initialTabId) ? initialTabId : tabs[0]?.id
+  );
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
 
   return (

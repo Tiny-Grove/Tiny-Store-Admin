@@ -12,10 +12,12 @@ export function ModalShell({
   title,
   onClose,
   children,
+  maxWidthClassName = "max-w-md",
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  maxWidthClassName?: string;
 }) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -36,7 +38,7 @@ export function ModalShell({
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
-        className="animate-scale-in w-full max-w-md rounded-xl bg-white p-5 shadow-xl"
+        className={`animate-scale-in w-full ${maxWidthClassName} rounded-xl bg-white p-5 shadow-xl`}
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-medium text-slate-900">{title}</h3>

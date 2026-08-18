@@ -33,7 +33,50 @@ export async function POST(request: Request) {
     await syncSubscriptionFromEvent(event);
   }
 
+  // Starts/stops the 7-day countdown to automatic suspension (see
+  // /api/cron/suspend-overdue-accounts) — never suspends or reactivates
+  // directly here, since reactivation after a suspension must always be a
+  // deliberate admin/staff action.
+  if (event.type === "invoice.payment_failed") {
+    await markPaymentFailed(event);
+  }
+  if (event.type === "invoice.payment_succeeded") {
+    await clearPaymentFailed(event);
+  }
+
   return NextResponse.json({ received: true });
+}
+
+function invoiceCustomerId(invoice: Stripe.Invoice): string | null {
+  if (!invoice.customer) return null;
+  return typeof invoice.customer === "string" ? invoice.customer : invoice.customer.id;
+}
+
+async function markPaymentFailed(event: Stripe.Event) {
+  const invoice = event.data.object as Stripe.Invoice;
+  const stripeCustomerId = invoiceCustomerId(invoice);
+  if (!stripeCustomerId) return;
+
+  const admin = createAdminClient();
+  // Only set if not already set — a retry within the same failing streak
+  // shouldn't push the 7-day deadline back.
+  await admin
+    .from("customers")
+    .update({ payment_failed_at: new Date().toISOString() })
+    .eq("stripe_customer_id", stripeCustomerId)
+    .is("payment_failed_at", null);
+}
+
+async function clearPaymentFailed(event: Stripe.Event) {
+  const invoice = event.data.object as Stripe.Invoice;
+  const stripeCustomerId = invoiceCustomerId(invoice);
+  if (!stripeCustomerId) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("customers")
+    .update({ payment_failed_at: null })
+    .eq("stripe_customer_id", stripeCustomerId);
 }
 
 async function syncSubscriptionFromEvent(event: Stripe.Event) {

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/suspend-overdue-accounts",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

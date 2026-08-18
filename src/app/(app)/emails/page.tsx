@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isMailtrapConfigured } from "@/lib/mailtrap";
 import type { EmailBatch, EmailLayout, EmailTemplate } from "@/lib/supabase/types";
-import { saveFooter, saveHeader } from "./actions";
+import { EmailLayoutEditors } from "./email-layout-editors";
 
 export default async function EmailsPage() {
   const admin = createAdminClient();
@@ -87,59 +87,10 @@ export default async function EmailsPage() {
         )}
       </section>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section
-          className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-          style={{ animationDelay: "75ms" }}
-        >
-          <h2 className="font-medium text-slate-900">Global header</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Shown at the top of every email, inside the green banner.
-          </p>
-          <form action={saveHeader} className="mt-3 space-y-2">
-            <textarea
-              name="header_html"
-              defaultValue={layoutRow?.header_html ?? ""}
-              rows={4}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-            />
-            <button
-              type="submit"
-              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
-            >
-              Save header
-            </button>
-          </form>
-        </section>
-
-        <section
-          className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-          style={{ animationDelay: "100ms" }}
-        >
-          <h2 className="font-medium text-slate-900">Global footer</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Appended to every email. Use{" "}
-            <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
-              %recipient.unsubscribe_url%
-            </code>{" "}
-            to keep the unsubscribe link working.
-          </p>
-          <form action={saveFooter} className="mt-3 space-y-2">
-            <textarea
-              name="footer_html"
-              defaultValue={layoutRow?.footer_html ?? ""}
-              rows={4}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-            />
-            <button
-              type="submit"
-              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
-            >
-              Save footer
-            </button>
-          </form>
-        </section>
-      </div>
+      <EmailLayoutEditors
+        initialHeaderHtml={layoutRow?.header_html ?? ""}
+        initialFooterHtml={layoutRow?.footer_html ?? ""}
+      />
 
       <section
         className="animate-fade-in-up"

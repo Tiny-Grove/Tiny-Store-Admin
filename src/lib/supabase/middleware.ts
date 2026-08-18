@@ -15,6 +15,7 @@ const FULLY_PUBLIC_PATHS = [
   "/api/webhooks/stripe-connect",
   "/api/webhooks/stripe",
   "/api/webhooks/mailtrap-inbound",
+  "/api/cron",
   "/connect",
 ];
 

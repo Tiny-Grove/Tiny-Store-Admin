@@ -34,21 +34,46 @@ export default async function SupportPage() {
       ) : (
         <div className="animate-fade-in-up divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm">
           {tickets.map((t) => (
-            <Link
+            <div
               key={t.id}
-              href={`/support/${t.id}`}
-              className="flex items-center justify-between px-4 py-3.5 text-sm transition-colors duration-150 hover:bg-slate-50"
+              className="flex items-center justify-between gap-4 px-4 py-3.5 text-sm transition-colors duration-150 hover:bg-slate-50"
             >
-              <div>
-                <p className="font-medium text-slate-900">{t.subject}</p>
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`/support/${t.id}`}
+                  className="font-medium text-slate-900 hover:text-brand-600"
+                >
+                  {t.subject}
+                </Link>
                 <p className="text-slate-500">
-                  {t.customers?.name ?? t.customers?.email ?? t.guest_name ?? t.guest_email ?? "Unknown"}
+                  {t.customer_id ? (
+                    <Link
+                      href={`/customers/${t.customer_id}?tab=communications`}
+                      className="hover:text-brand-600 hover:underline"
+                    >
+                      {t.customers?.name ?? t.customers?.email ?? "Customer"}
+                    </Link>
+                  ) : (
+                    (t.guest_name ?? t.guest_email ?? "Unknown")
+                  )}
                   {!t.customer_id && (
                     <span className="ml-1.5 text-xs text-slate-400">(guest)</span>
                   )}
                 </p>
+                {t.tags.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {t.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex shrink-0 items-center gap-4">
                 <span className="text-xs text-slate-400">
                   {new Date(t.last_message_at).toLocaleString()}
                 </span>
@@ -63,7 +88,7 @@ export default async function SupportPage() {
                   {t.status}
                 </span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

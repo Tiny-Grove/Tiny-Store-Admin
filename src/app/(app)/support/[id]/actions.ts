@@ -89,3 +89,47 @@ export async function setTicketStatus(ticketId: string, formData: FormData) {
   revalidatePath(`/support/${ticketId}`);
   revalidatePath("/support");
 }
+
+export async function addTicketTag(formData: FormData) {
+  const ticketId = formData.get("ticketId") as string;
+  const tag = (formData.get("tag") as string)?.trim().toLowerCase();
+  if (!ticketId || !tag) return;
+
+  const admin = createAdminClient();
+  const { data: ticket } = await admin
+    .from("support_tickets")
+    .select("tags")
+    .eq("id", ticketId)
+    .maybeSingle();
+  if (!ticket || ticket.tags.includes(tag)) return;
+
+  await admin
+    .from("support_tickets")
+    .update({ tags: [...ticket.tags, tag] })
+    .eq("id", ticketId);
+
+  revalidatePath(`/support/${ticketId}`);
+  revalidatePath("/support");
+}
+
+export async function removeTicketTag(formData: FormData) {
+  const ticketId = formData.get("ticketId") as string;
+  const tag = formData.get("tag") as string;
+  if (!ticketId || !tag) return;
+
+  const admin = createAdminClient();
+  const { data: ticket } = await admin
+    .from("support_tickets")
+    .select("tags")
+    .eq("id", ticketId)
+    .maybeSingle();
+  if (!ticket) return;
+
+  await admin
+    .from("support_tickets")
+    .update({ tags: ticket.tags.filter((t: string) => t !== tag) })
+    .eq("id", ticketId);
+
+  revalidatePath(`/support/${ticketId}`);
+  revalidatePath("/support");
+}
