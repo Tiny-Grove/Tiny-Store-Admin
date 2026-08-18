@@ -37,9 +37,10 @@ async function getMailtrapStatus() {
   }
 
   try {
-    // No domain-specific check available without also asking for an
-    // account ID, so this just validates the API token itself.
-    await getTransactionalClient().general.accounts.getAllAccounts();
+    // client.general requires an accountId this app never configures, so
+    // that API always throws regardless of token validity. client.inbound
+    // needs no accountId and still proves the token works.
+    await getTransactionalClient().inbound.folders.getList();
     return { connected: true, error: null as string | null };
   } catch (err) {
     return {
@@ -79,6 +80,11 @@ export default async function SettingsPage() {
   const siteUrl = configuredSiteUrl || process.env.PUBLIC_SITE_URL || null;
   const configuredMailFrom = siteSettingsRow?.mail_from_email ?? null;
   const mailFrom = configuredMailFrom || process.env.MAIL_FROM_EMAIL || null;
+  const inboundSupportConfigured = !!(
+    process.env.MAILTRAP_INBOUND_WEBHOOK_SECRET &&
+    process.env.MAILTRAP_INBOUND_INBOX_ID &&
+    process.env.SUPPORT_INBOX_EMAIL
+  );
 
   return (
     <div>
@@ -357,6 +363,113 @@ export default async function SettingsPage() {
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
           style={{ animationDelay: "225ms" }}
         >
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="font-medium text-slate-900">Inbound support email</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Shows emails sent to {process.env.SUPPORT_INBOX_EMAIL || "your support inbox"}{" "}
+                in the Support section, alongside app messages.
+              </p>
+            </div>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                inboundSupportConfigured
+                  ? "bg-green-50 text-green-700"
+                  : "bg-red-50 text-red-700"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  inboundSupportConfigured ? "bg-green-500" : "bg-red-500"
+                }`}
+              />
+              {inboundSupportConfigured ? "Configured" : "Not configured"}
+            </span>
+          </div>
+
+          <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-slate-500">Support inbox</dt>
+              <dd className="mt-0.5 truncate font-medium text-slate-900">
+                {process.env.SUPPORT_INBOX_EMAIL || "Not set"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">Webhook URL</dt>
+              <dd className="mt-0.5 truncate font-mono text-xs font-medium text-slate-900">
+                {siteUrl ? `${new URL(siteUrl).origin}/api/webhooks/mailtrap-inbound` : "Set the storefront domain above first"}
+              </dd>
+            </div>
+          </dl>
+
+          <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            This has no editable fields here — everything is environment
+            variables (see setup instructions below) since it&apos;s
+            infrastructure, not something merchants ever change.
+          </p>
+
+          <details className="mt-5 border-t border-slate-100 pt-4">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700">
+              Setup instructions
+            </summary>
+            <ol className="mt-3 space-y-3 text-sm text-slate-500">
+              <li>
+                <span className="font-medium text-slate-700">1. Create an inbound inbox</span> —
+                in Mailtrap, go to Inboxes → Inbound → Add Inbox (or use the
+                API). This gives you a Mailtrap-hosted address like{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  xxxx@inbound-mailtrap.io
+                </code>{" "}
+                — no DNS changes needed. Note the inbox&apos;s numeric ID from
+                its URL/API response.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">
+                  2. Forward support@ to that address in Gmail
+                </span>{" "}
+                — since support@bizzlet.com already runs on Google Workspace,
+                add a Gmail forwarding rule (Settings → Forwarding and
+                POP/IMAP) from that mailbox to the address from step 1. This
+                avoids touching bizzlet.com&apos;s MX records.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">3. Register a webhook</span> —
+                in Mailtrap, go to Webhooks → Add Webhook, set the type to
+                &quot;Inbound Inboxes&quot;, select your inbox, and paste the
+                webhook URL shown above. Copy the signing secret it gives you.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">4. Set the environment variables</span>{" "}
+                — add{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  MAILTRAP_INBOUND_WEBHOOK_SECRET
+                </code>{" "}
+                (the signing secret from step 3),{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  MAILTRAP_INBOUND_INBOX_ID
+                </code>{" "}
+                (the ID from step 1), and{" "}
+                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">
+                  SUPPORT_INBOX_EMAIL=support@bizzlet.com
+                </code>{" "}
+                in Vercel, then redeploy.
+              </li>
+              <li>
+                <span className="font-medium text-slate-700">
+                  5. Send a test email
+                </span>{" "}
+                to support@bizzlet.com — it should appear as a new ticket in
+                the Support section within a few seconds, marked with the
+                email icon.
+              </li>
+            </ol>
+          </details>
+        </section>
+
+        <section
+          className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          style={{ animationDelay: "300ms" }}
+        >
           <h2 className="font-medium text-slate-900">Access control</h2>
           <p className="mt-1 text-sm text-slate-500">
             Google sign-in is restricted to this Workspace domain and to
@@ -455,7 +568,7 @@ export default async function SettingsPage() {
 
         <section
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-          style={{ animationDelay: "300ms" }}
+          style={{ animationDelay: "375ms" }}
         >
           <h2 className="font-medium text-slate-900">Industries</h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -500,7 +613,7 @@ export default async function SettingsPage() {
 
         <section
           className="animate-fade-in-up rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-          style={{ animationDelay: "375ms" }}
+          style={{ animationDelay: "450ms" }}
         >
           <h2 className="font-medium text-slate-900">Database</h2>
           <p className="mt-1 text-sm text-slate-500">

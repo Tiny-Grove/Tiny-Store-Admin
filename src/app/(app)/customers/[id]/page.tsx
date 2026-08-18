@@ -40,6 +40,18 @@ type CustomerDetail = Customer & {
   notes: Note[];
 };
 
+type CommunicationRow = {
+  id: string;
+  status: "sent" | "failed";
+  error: string | null;
+  created_at: string;
+  email_batches: {
+    subject: string;
+    template_name: string;
+    sent_by_email: string;
+  } | null;
+};
+
 export default async function CustomerDetailPage({
   params,
 }: {
@@ -48,25 +60,37 @@ export default async function CustomerDetailPage({
   const { id } = await params;
 
   const supabase = createAdminClient();
-  const [{ data: customer }, enabledPlans, { data: products }, { data: industries }, siteUrl] =
-    await Promise.all([
-      supabase
-        .from("customers")
-        .select("*, subscriptions(*), notes(*)")
-        .eq("id", id)
-        .order("created_at", { referencedTable: "subscriptions", ascending: false })
-        .order("created_at", { referencedTable: "notes", ascending: false })
-        .maybeSingle<CustomerDetail>(),
-      getEnabledPlans(),
-      supabase
-        .from("products")
-        .select("*")
-        .eq("customer_id", id)
-        .order("created_at", { ascending: false })
-        .returns<Product[]>(),
-      supabase.from("industries").select("*").order("name").returns<Industry[]>(),
-      getSiteUrl(),
-    ]);
+  const [
+    { data: customer },
+    enabledPlans,
+    { data: products },
+    { data: industries },
+    siteUrl,
+    { data: communications },
+  ] = await Promise.all([
+    supabase
+      .from("customers")
+      .select("*, subscriptions(*), notes(*)")
+      .eq("id", id)
+      .order("created_at", { referencedTable: "subscriptions", ascending: false })
+      .order("created_at", { referencedTable: "notes", ascending: false })
+      .maybeSingle<CustomerDetail>(),
+    getEnabledPlans(),
+    supabase
+      .from("products")
+      .select("*")
+      .eq("customer_id", id)
+      .order("created_at", { ascending: false })
+      .returns<Product[]>(),
+    supabase.from("industries").select("*").order("name").returns<Industry[]>(),
+    getSiteUrl(),
+    supabase
+      .from("email_batch_recipients")
+      .select("id, status, error, created_at, email_batches(subject, template_name, sent_by_email)")
+      .eq("customer_id", id)
+      .order("created_at", { ascending: false })
+      .returns<CommunicationRow[]>(),
+  ]);
 
   if (!customer) notFound();
 
@@ -86,6 +110,7 @@ export default async function CustomerDetailPage({
 
   const inventory = products ?? [];
   const industryOptions = industries ?? [];
+  const communicationsList = communications ?? [];
 
   const stripeSubscriptionIds = customer.subscriptions
     .map((sub) => sub.stripe_subscription_id)
@@ -579,6 +604,57 @@ export default async function CustomerDetailPage({
     </div>
   );
 
+  const communicationsTab = (
+    <div>
+      {communicationsList.length === 0 ? (
+        <p className="text-sm text-slate-500">
+          No emails sent to this customer yet — bulk template sends from the
+          Emails section will show up here.
+        </p>
+      ) : (
+        <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm">
+          {communicationsList.map((c) => (
+            <div key={c.id} className="px-4 py-3.5 text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-900">
+                    {c.email_batches?.subject ?? "(deleted template)"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {c.email_batches?.template_name ?? "Unknown template"} · sent
+                    by {c.email_batches?.sent_by_email ?? "unknown"}
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    c.status === "sent"
+                      ? "bg-green-50 text-green-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      c.status === "sent" ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  />
+                  {c.status === "sent" ? "Sent" : "Failed"}
+                </span>
+              </div>
+              <p className="mt-1.5 text-xs text-slate-400">
+                {new Date(c.created_at).toLocaleString()}
+              </p>
+              {c.error && (
+                <p className="mt-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-600">
+                  {c.error}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   const dangerZoneTab = (
     <DangerZone
       customerId={customer.id}
@@ -593,6 +669,7 @@ export default async function CustomerDetailPage({
     { id: "branding", label: "Branding", content: brandingTab },
     { id: "payments", label: "Payments", content: paymentsTab },
     { id: "inventory", label: "Inventory", content: inventoryTab },
+    { id: "communications", label: "Communications", content: communicationsTab },
     ...(isAdmin ? [{ id: "danger", label: "Danger zone", content: dangerZoneTab }] : []),
   ];
 

@@ -162,10 +162,13 @@ export interface EmailBatchRecipient {
 
 export type TicketStatus = "open" | "pending" | "resolved";
 export type TicketAuthor = "customer" | "admin";
+export type TicketChannel = "app" | "email";
 
 export interface SupportTicket {
   id: string;
-  customer_id: string;
+  customer_id: string | null;
+  guest_email: string | null;
+  guest_name: string | null;
   subject: string;
   status: TicketStatus;
   created_at: string;
@@ -179,6 +182,8 @@ export interface SupportTicketMessage {
   author_type: TicketAuthor;
   author_email: string;
   body: string;
+  channel: TicketChannel;
+  external_message_id: string | null;
   created_at: string;
 }
 

@@ -11,6 +11,31 @@ type TicketDetail = SupportTicket & {
   customers: Pick<Customer, "id" | "email" | "name"> | null;
 };
 
+// Distinguishes a message that arrived as real inbound email (to
+// support@bizzlet.com) from one sent through the app or the public web
+// reply page.
+function ChannelIcon({ channel }: { channel: "app" | "email" }) {
+  if (channel === "email") {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-label="Sent by email">
+        <rect x="2.5" y="4.5" width="15" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+        <path d="m3 5.5 7 5.5 7-5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-label="Sent in the app">
+      <path
+        d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8.5L5 16.5V13.5H5a2 2 0 0 1-2-2v-6Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default async function TicketDetailPage({
   params,
 }: {
@@ -50,9 +75,12 @@ export default async function TicketDetailPage({
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{t.subject}</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {t.customers?.name ?? t.customers?.email ?? "Unknown customer"}
+            {t.customers?.name ?? t.customers?.email ?? t.guest_name ?? t.guest_email ?? "Unknown"}
             {t.customers?.name && (
               <span className="text-slate-400"> · {t.customers.email}</span>
+            )}
+            {!t.customer_id && (
+              <span className="ml-1.5 text-xs text-slate-400">(guest)</span>
             )}
           </p>
         </div>
@@ -104,7 +132,8 @@ export default async function TicketDetailPage({
                 }`}
               >
                 <p className="whitespace-pre-wrap text-slate-800">{m.body}</p>
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
+                  <ChannelIcon channel={m.channel} />
                   {isAdmin ? "Admin" : "Customer"} · {m.author_email} ·{" "}
                   {new Date(m.created_at).toLocaleString()}
                 </p>
@@ -125,8 +154,8 @@ export default async function TicketDetailPage({
         />
         <div className="flex items-center justify-between">
           <p className="text-xs text-slate-400">
-            Emailed to {t.customers?.email ?? "the customer"} with a link back
-            to this thread.
+            Emailed to {t.customers?.email ?? t.guest_email ?? "the customer"}{" "}
+            with a link back to this thread.
           </p>
           <button
             type="submit"

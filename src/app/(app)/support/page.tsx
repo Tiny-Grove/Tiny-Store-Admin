@@ -42,7 +42,10 @@ export default async function SupportPage() {
               <div>
                 <p className="font-medium text-slate-900">{t.subject}</p>
                 <p className="text-slate-500">
-                  {t.customers?.name ?? t.customers?.email ?? "Unknown customer"}
+                  {t.customers?.name ?? t.customers?.email ?? t.guest_name ?? t.guest_email ?? "Unknown"}
+                  {!t.customer_id && (
+                    <span className="ml-1.5 text-xs text-slate-400">(guest)</span>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-4">

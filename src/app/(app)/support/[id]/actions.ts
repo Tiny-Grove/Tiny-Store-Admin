@@ -20,17 +20,25 @@ export async function replyToTicket(formData: FormData) {
   const admin = createAdminClient();
   const { data: ticket } = await admin
     .from("support_tickets")
-    .select("subject, customer_id")
+    .select("subject, customer_id, guest_email")
     .eq("id", ticketId)
     .maybeSingle();
 
   if (!ticket) return;
 
-  const { data: customer } = await admin
-    .from("customers")
-    .select("email")
-    .eq("id", ticket.customer_id)
-    .maybeSingle();
+  // Guest tickets (originated from an email address not matched to a
+  // customer) have no customers row to look up — reply to guest_email
+  // instead, and skip the in-app notification since there's no account to
+  // receive it.
+  let replyToEmail = ticket.guest_email;
+  if (ticket.customer_id) {
+    const { data: customer } = await admin
+      .from("customers")
+      .select("email")
+      .eq("id", ticket.customer_id)
+      .maybeSingle();
+    replyToEmail = customer?.email ?? null;
+  }
 
   await admin.from("support_ticket_messages").insert({
     ticket_id: ticketId,
@@ -45,22 +53,24 @@ export async function replyToTicket(formData: FormData) {
     .update({ status: "pending", last_message_at: now, updated_at: now })
     .eq("id", ticketId);
 
-  if (customer?.email) {
+  if (replyToEmail) {
     await sendTicketReplyEmail({
-      to: customer.email,
+      to: replyToEmail,
       subject: `Re: ${ticket.subject}`,
       replyBody: body,
       ticketId,
     });
   }
 
-  await admin.from("notifications").insert({
-    customer_id: ticket.customer_id,
-    type: "ticket_reply",
-    title: `Re: ${ticket.subject}`,
-    body,
-    data: { ticketId },
-  });
+  if (ticket.customer_id) {
+    await admin.from("notifications").insert({
+      customer_id: ticket.customer_id,
+      type: "ticket_reply",
+      title: `Re: ${ticket.subject}`,
+      body,
+      data: { ticketId },
+    });
+  }
 
   revalidatePath(`/support/${ticketId}`);
   revalidatePath("/support");

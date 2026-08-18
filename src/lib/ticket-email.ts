@@ -12,6 +12,20 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
+// If the customer hits "Reply" in their email client instead of using the
+// ticket link, this plus-addressed address (delivered to the same
+// SUPPORT_INBOX_EMAIL inbox — Gmail treats a "+tag" as part of the base
+// address) lets the inbound webhook thread the reply onto this exact
+// ticket instead of creating a new one. See
+// src/app/api/webhooks/mailtrap-inbound/route.ts.
+function supportReplyTo(ticketId: string): { email: string } | undefined {
+  const supportInbox = process.env.SUPPORT_INBOX_EMAIL;
+  if (!supportInbox) return undefined;
+  const [local, domain] = supportInbox.split("@");
+  if (!local || !domain) return undefined;
+  return { email: `${local}+${ticketId}@${domain}` };
+}
+
 // Emails an admin's reply to the customer, with a link back to the public
 // ticket thread. Best-effort — a delivery failure shouldn't stop the reply
 // from being saved (the customer can still be helped by other means).
@@ -61,6 +75,7 @@ export async function sendTicketReplyEmail({
     await client.send({
       from,
       to: [{ email: to }],
+      reply_to: supportReplyTo(ticketId),
       subject,
       html,
     });
